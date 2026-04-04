@@ -99,6 +99,11 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .page-header h1{font-size:20px;font-weight:700;margin-bottom:3px;letter-spacing:-.3px}
 .page-header p{font-size:12px;color:var(--text3)}
 .page-header-right{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}
+.date-range{display:flex;align-items:flex-end;gap:6px;background:var(--card);border:1px solid var(--border2);border-radius:8px;padding:4px 8px;height:34px}
+.date-range input[type=date]{background:transparent;border:none;color:var(--text);font-family:'Inter',sans-serif;font-size:12px;outline:none;cursor:pointer;height:100%}
+.date-range input[type=date]::-webkit-calendar-picker-indicator{filter:invert(0.6);cursor:pointer}
+.date-sep{font-size:12px;color:var(--text3);flex-shrink:0}
+.date-range-active{border-color:var(--blue)!important;box-shadow:0 0 0 2px var(--blue-glow)}
 .filter-group{display:flex;flex-direction:column;gap:4px}
 .filter-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
 .filter-select{height:34px;background:var(--card);border:1px solid var(--border2);color:var(--text);font-family:'Inter',sans-serif;font-size:12px;padding:0 10px;border-radius:8px;outline:none;cursor:pointer;transition:border-color .15s}
@@ -231,6 +236,44 @@ tr:hover td{background:rgba(59,130,246,.04)}
 
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:199;backdrop-filter:blur(3px)}.overlay.show{display:block}
 
+/* ── Trend badge ── */
+.trend-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;margin-left:6px}
+.trend-badge.up{background:var(--green-dim);color:var(--green)}
+.trend-badge.down{background:var(--red-dim);color:var(--red)}
+.trend-badge.flat{background:var(--card2);color:var(--text3)}
+
+/* ── Projeção ── */
+.proj-card{background:linear-gradient(135deg,rgba(168,85,247,.1),rgba(59,130,246,.08));border:1px solid rgba(168,85,247,.2);border-radius:14px;padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.proj-left{display:flex;flex-direction:column;gap:4px}
+.proj-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.proj-value{font-size:24px;font-weight:800;letter-spacing:-.5px;color:var(--purple)}
+.proj-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.proj-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.proj-meta{font-size:12px;color:var(--text2)}
+
+/* ── Vendedor ranking ── */
+.vendor-list{display:flex;flex-direction:column;gap:8px}
+.vendor-row{display:flex;align-items:center;gap:10px}
+.vendor-rank{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.rank-1{background:rgba(245,158,11,.2);color:var(--yellow)}
+.rank-2{background:rgba(148,163,184,.15);color:#94a3b8}
+.rank-3{background:rgba(180,120,80,.15);color:#b47850}
+.rank-n{background:var(--card2);color:var(--text3)}
+.vendor-name{font-size:13px;font-weight:500;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vendor-bar-wrap{width:80px;height:6px;background:var(--card2);border-radius:10px;overflow:hidden;flex-shrink:0}
+.vendor-bar{height:100%;border-radius:10px;background:var(--blue)}
+.vendor-val{font-size:13px;font-weight:700;color:var(--green);min-width:80px;text-align:right}
+
+/* ── Fullscreen ── */
+.fs-btn{width:32px;height:32px;border-radius:8px;background:var(--card2);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;color:var(--text2)}
+.fs-btn:hover{background:var(--card);color:var(--text)}
+
+/* ── Table alternating rows ── */
+tbody tr:nth-child(even) td{background:rgba(255,255,255,.015)}
+
+/* ── Alert banner ── */
+.roi-alert{background:var(--red-dim);border:1px solid rgba(239,68,68,.3);border-radius:10px;padding:.75rem 1rem;font-size:13px;color:var(--red);display:flex;align-items:center;gap:8px;margin-bottom:.5rem}
+
 .metric-card:nth-child(1){animation:fadeUp .4s .05s ease both}
 .metric-card:nth-child(2){animation:fadeUp .4s .1s ease both}
 .metric-card:nth-child(3){animation:fadeUp .4s .15s ease both}
@@ -330,7 +373,16 @@ tr:hover td{background:rgba(59,130,246,.04)}
             <option value="7" selected>Últimos 7 dias</option>
             <option value="30">Últimos 30 dias</option>
             <option value="999">Todo período</option>
+            <option value="custom">Personalizado</option>
           </select>
+        </div>
+        <div class="filter-group" id="dateRangeGroup" style="display:none">
+          <span class="filter-label">Intervalo</span>
+          <div class="date-range" id="dateRangeWrap">
+            <input type="date" id="dateFrom" onchange="applyCustomRange()">
+            <span class="date-sep">→</span>
+            <input type="date" id="dateTo" onchange="applyCustomRange()">
+          </div>
         </div>
         <div class="filter-group"><span class="filter-label">Ação</span>
           <button class="btn-primary" onclick="syncAll()">
@@ -395,15 +447,34 @@ tr:hover td{background:rgba(59,130,246,.04)}
       </div>
     </div>
 
+    <!-- Projeção do mês -->
+    <div class="proj-card" id="projCard">
+      <div class="proj-left">
+        <div class="proj-label">📈 Projeção do mês</div>
+        <div class="proj-value" id="projVal">—</div>
+        <div class="proj-sub" id="projSub">baseado na média diária atual</div>
+      </div>
+      <div class="proj-right">
+        <div class="proj-meta" id="projDiasRestantes">—</div>
+        <div class="proj-meta" id="projMedia">—</div>
+      </div>
+    </div>
+
     <div class="metrics-grid">
-      <div class="metric-card"><div class="metric-icon ic-blue"><svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div class="metric-label">Gastos com anúncios</div><div class="metric-value c-blue" id="mGasto">R$ 0,00</div><div class="metric-sub" id="mDias">0 dias registrados</div></div>
-      <div class="metric-card"><div class="metric-icon ic-green"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div><div class="metric-label">Lucro líquido</div><div class="metric-value" id="mLucro">R$ 0,00</div><div class="metric-sub" id="mLucroSub">no período selecionado</div></div>
-      <div class="metric-card"><div class="metric-icon ic-purple"><svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></div><div class="metric-label">ROI</div><div class="metric-value" id="mROI">N/A</div><div class="metric-sub">lucro ÷ investimento</div></div>
-      <div class="metric-card"><div class="metric-icon ic-blue"><svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="metric-label">ROAS</div><div class="metric-value" id="mROAS">N/A</div><div class="metric-sub">retorno por R$ 1 investido</div></div>
+      <div class="metric-card"><div class="metric-icon ic-blue"><svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div class="metric-label">Gastos com anúncios <span class="trend-badge flat" id="trendGasto"></span></div><div class="metric-value c-blue" id="mGasto">R$ 0,00</div><div class="metric-sub" id="mDias">0 dias registrados</div></div>
+      <div class="metric-card"><div class="metric-icon ic-green"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div><div class="metric-label">Lucro líquido <span class="trend-badge flat" id="trendLucro"></span></div><div class="metric-value" id="mLucro">R$ 0,00</div><div class="metric-sub" id="mLucroSub">no período selecionado</div></div>
+      <div class="metric-card"><div class="metric-icon ic-purple"><svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></div><div class="metric-label">ROI <span class="trend-badge flat" id="trendROI"></span></div><div class="metric-value" id="mROI">N/A</div><div class="metric-sub">lucro ÷ investimento</div></div>
+      <div class="metric-card"><div class="metric-icon ic-blue"><svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="metric-label">ROAS <span class="trend-badge flat" id="trendROAS"></span></div><div class="metric-value" id="mROAS">N/A</div><div class="metric-sub">retorno por R$ 1 investido</div></div>
       <div class="metric-card"><div class="metric-icon ic-green"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><div class="metric-label">Melhor dia</div><div class="metric-value c-green" id="mMelhor">—</div><div class="metric-sub" id="mMelhorSub">—</div></div>
       <div class="metric-card"><div class="metric-icon ic-blue"><svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div><div class="metric-label">Média diária</div><div class="metric-value" id="mMedia">R$ 0,00</div><div class="metric-sub">lucro médio por dia</div></div>
       <div class="metric-card"><div class="metric-icon ic-green"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div class="metric-label">Margem</div><div class="metric-value" id="mMargem">N/A</div><div class="metric-sub">lucro ÷ receita total</div></div>
       <div class="metric-card"><div class="metric-icon ic-red"><svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg></div><div class="metric-label">Pior dia</div><div class="metric-value c-red" id="mPior">—</div><div class="metric-sub" id="mPiorSub">—</div></div>
+    </div>
+
+    <!-- Ranking de Vendedores -->
+    <div class="section-card" id="vendorCard">
+      <div class="section-head"><div class="s-bar" style="background:var(--yellow);box-shadow:0 0 8px var(--yellow)"></div><div class="s-title">Ranking de vendedores</div><span style="margin-left:auto;font-size:11px;color:var(--text3)" id="vendorPeriod">—</span></div>
+      <div class="vendor-list" id="vendorList"><div class="empty" style="padding:1rem">Carregando...</div></div>
     </div>
 
     <div class="section-card">
@@ -543,7 +614,7 @@ let CFG={
 const saved=localStorage.getItem('af-cfg');
 if(saved){try{CFG={...CFG,...JSON.parse(saved)};}catch(e){}}
 
-let days={},period=7,chartPeriod=7,charts={};
+let days={},vendors={},period=7,chartPeriod=7,charts={};
 
 
 // ── Utils ──
@@ -684,6 +755,12 @@ async function syncSheets(){
     if(!lucro&&lucro!==0)continue;
     if(!days[iso])days[iso]={gasto:0,lucro:0,srcG:'',srcL:''};
     days[iso].lucro+=lucro;days[iso].srcL='sheets';count++;
+    // Track vendor
+    const vendedor=(cols[5]||'').trim().replace(/"/g,'');
+    if(vendedor&&lucro>0){
+      if(!vendors[vendedor])vendors[vendedor]=0;
+      vendors[vendedor]+=lucro;
+    }
   }
   dot.className='source-dot on';lbl.textContent='Sheets ✓';
   toast(`✓ ${count} linhas da planilha`,'ok');
@@ -714,7 +791,7 @@ async function syncMeta(){
 }
 
 async function syncAll(){
-  days={};
+  days={};vendors={};
   document.getElementById('updateTime').textContent='Atualizando...';
   await syncSheets();await syncMeta();
   document.getElementById('updateTime').textContent='Atualizado às '+nowStr();
@@ -723,13 +800,47 @@ async function syncAll(){
 }
 
 // ── Period ──
-function onPeriodChange(){period=parseInt(document.getElementById('periodSel').value);renderResumo();}
+function onPeriodChange(){
+  const val=document.getElementById('periodSel').value;
+  const grp=document.getElementById('dateRangeGroup');
+  if(val==='custom'){
+    period='custom';
+    grp.style.display='flex';
+    // Set default range: current month
+    const now=new Date();
+    const y=now.getFullYear(),m=String(now.getMonth()+1).padStart(2,'0');
+    document.getElementById('dateFrom').value=`${y}-${m}-01`;
+    document.getElementById('dateTo').value=now.toISOString().slice(0,10);
+    customFrom=document.getElementById('dateFrom').value;
+    customTo=document.getElementById('dateTo').value;
+  } else {
+    period=parseInt(val);
+    grp.style.display='none';
+    document.getElementById('dateRangeWrap').classList.remove('date-range-active');
+    customFrom=null;customTo=null;
+  }
+  renderResumo();
+}
 function setChartPeriod(p,btn){chartPeriod=p;document.querySelectorAll('.ptab').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderMainChart(filteredFor(chartPeriod));}
+let customFrom=null,customTo=null;
+
 function filteredFor(p){
   const s=Object.entries(days).sort((a,b)=>a[0].localeCompare(b[0]));
+  if(p==='custom'&&customFrom&&customTo){
+    return s.filter(([iso])=>iso>=customFrom&&iso<=customTo);
+  }
   if(!p||p>=999)return s;
   const cut=new Date();cut.setDate(cut.getDate()-p);
   return s.filter(([iso])=>new Date(iso)>=cut);
+}
+
+function applyCustomRange(){
+  customFrom=document.getElementById('dateFrom').value;
+  customTo=document.getElementById('dateTo').value;
+  if(customFrom&&customTo){
+    document.getElementById('dateRangeWrap').classList.add('date-range-active');
+    renderResumo();
+  }
 }
 
 // ── Animated counter ──
@@ -744,6 +855,75 @@ function animateValue(el,target,prefix='',suffix='',duration=350){
     if(progress<1)requestAnimationFrame(update);
   }
   requestAnimationFrame(update);
+}
+
+// ── Fullscreen ──
+function toggleFullscreen(){
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen();
+    document.getElementById('fsBtn').innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>';
+  } else {
+    document.exitFullscreen();
+    document.getElementById('fsBtn').innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>';
+  }
+}
+
+// ── Trend badge ──
+function setTrend(elId,curr,prev){
+  const el=document.getElementById(elId);if(!el)return;
+  if(!prev||prev===0){el.className='trend-badge flat';el.textContent='';return;}
+  const diff=((curr-prev)/Math.abs(prev))*100;
+  const up=diff>=0;
+  el.className='trend-badge '+(up?'up':'down');
+  el.textContent=(up?'↑ ':' ↓')+Math.abs(diff).toFixed(1)+'%';
+}
+
+// ── Projeção do mês ──
+function renderProjecao(fd){
+  const now=new Date();
+  const ym=now.toISOString().slice(0,7);
+  const diasNoMes=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+  const diaAtual=now.getDate();
+  const diasRestantes=diasNoMes-diaAtual;
+  const lucroMes=fd.filter(([iso])=>iso.startsWith(ym)).reduce((a,[,d])=>a+d.lucro,0);
+  const diasComDado=fd.filter(([iso])=>iso.startsWith(ym)).length;
+  if(!diasComDado){document.getElementById('projVal').textContent='—';document.getElementById('projSub').textContent='sem dados este mês';return;}
+  const mediaDiaria=lucroMes/diasComDado;
+  const projecao=lucroMes+(mediaDiaria*diasRestantes);
+  document.getElementById('projVal').textContent=fmtBRL(projecao);
+  document.getElementById('projSub').textContent=`baseado em ${fmtBRL(mediaDiaria)}/dia`;
+  document.getElementById('projDiasRestantes').textContent=`${diasRestantes} dias restantes`;
+  document.getElementById('projMedia').textContent=`Acumulado: ${fmtBRL(lucroMes)}`;
+  // Color based on best goal
+  const METAS=[160000,200000,260000,350000];
+  const proxima=METAS.find(m=>projecao<m);
+  const el=document.getElementById('projVal');
+  el.style.color=!proxima?'var(--yellow)':projecao>=METAS[0]?'var(--green)':'var(--purple)';
+}
+
+// ── Vendedores ──
+function renderVendors(fd){
+  const periodVendors={};
+  const header=fd.length+' dias';
+  document.getElementById('vendorPeriod').textContent=header;
+  // Rebuild vendors for current period
+  fd.forEach(([iso,d])=>{
+    // We need per-day vendor data - use global vendors (all time for now)
+  });
+  const list=Object.entries(vendors).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  if(!list.length){document.getElementById('vendorList').innerHTML='<div class="empty" style="padding:1rem">Sem dados de vendedor.</div>';return;}
+  const max=list[0][1];
+  const rankClass=['rank-1','rank-2','rank-3'];
+  const medals=['🥇','🥈','🥉'];
+  const html=list.map(([name,val],i)=>`
+    <div class="vendor-row">
+      <div class="vendor-rank ${rankClass[i]||'rank-n'}">${medals[i]||i+1}</div>
+      <div class="vendor-name">${name}</div>
+      <div class="vendor-bar-wrap"><div class="vendor-bar" style="width:${(val/max*100).toFixed(0)}%;background:${i===0?'var(--yellow)':i===1?'#94a3b8':i===2?'#b47850':'var(--blue)'}"></div></div>
+      <div class="vendor-val">${fmtBRL(val)}</div>
+    </div>
+  `).join('');
+  document.getElementById('vendorList').innerHTML=html;
 }
 
 // ── Goal ──
@@ -826,6 +1006,30 @@ function renderResumo(){
   document.getElementById('tableCount').textContent=Object.keys(days).length+' dias';
 
   renderGoals();
+  renderProjecao(fd);
+  renderVendors(fd);
+
+  // Trend badges: compare current period vs previous same period
+  const prevFd=filteredFor(period==='custom'?999:period*2).slice(0,fd.length);
+  const prevG=prevFd.reduce((a,[,d])=>a+d.gasto,0);
+  const prevL=prevFd.reduce((a,[,d])=>a+d.lucro,0);
+  const prevROI=prevG>0?(prevL/prevG)*100:null;
+  const prevROAS=prevG>0?(prevL+prevG)/prevG:null;
+  setTrend('trendGasto',tG,prevG);
+  setTrend('trendLucro',tL,prevL);
+  if(roi!==null&&prevROI!==null)setTrend('trendROI',roi,prevROI);
+  if(roas!==null&&prevROAS!==null)setTrend('trendROAS',roas,prevROAS);
+
+  // ROI alert
+  const existingAlert=document.getElementById('roiAlert');if(existingAlert)existingAlert.remove();
+  if(roi!==null&&roi<20&&tG>0){
+    const alertDiv=document.createElement('div');alertDiv.id='roiAlert';
+    alertDiv.className='roi-alert';
+    alertDiv.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>⚠️ ROI abaixo de 20% — revise seus anúncios!';
+    document.getElementById('projCard').before(alertDiv);
+  }
+
+  // Auto switch chart type: line for >30 days
   renderMainChart(filteredFor(chartPeriod));
   renderTable();
 }
@@ -839,13 +1043,26 @@ function mkChart(id,type,data,options){
 const chartDefaults={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#141923',borderColor:'#1e2535',borderWidth:1,padding:10}},scales:{x:{ticks:{color:'#3d4f63',font:{size:10},maxRotation:35},grid:{display:false},border:{color:'rgba(255,255,255,.04)'}},y:{ticks:{color:'#3d4f63',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'},border:{color:'transparent'}}}};
 
 function renderMainChart(fd){
-  mkChart('chart','bar',{
-    labels:fd.map(([iso])=>fmtISO(iso)),
-    datasets:[
-      {label:'ADS',data:fd.map(([,d])=>d.gasto),backgroundColor:'rgba(59,130,246,.6)',borderRadius:5,barPercentage:.7},
-      {label:'Lucro',data:fd.map(([,d])=>d.lucro),backgroundColor:fd.map(([,d])=>d.lucro>=0?'rgba(34,197,94,.7)':'rgba(239,68,68,.65)'),borderRadius:5,barPercentage:.7}
-    ]
-  },{...chartDefaults,plugins:{...chartDefaults.plugins,tooltip:{...chartDefaults.plugins.tooltip,callbacks:{label:ctx=>ctx.dataset.label+': '+fmtBRL(ctx.parsed.y)}}},scales:{...chartDefaults.scales,y:{...chartDefaults.scales.y,ticks:{color:'#3d4f63',font:{size:10},callback:v=>'R$'+(Math.abs(v)>=1000?(v/1000).toFixed(1)+'k':v)}}}});
+  const useLine=fd.length>30;
+  const yTick={color:'#3d4f63',font:{size:10},callback:v=>'R$'+(Math.abs(v)>=1000?(v/1000).toFixed(1)+'k':v)};
+  const tooltip={...chartDefaults.plugins.tooltip,callbacks:{label:ctx=>ctx.dataset.label+': '+fmtBRL(ctx.parsed.y)}};
+  if(useLine){
+    mkChart('chart','line',{
+      labels:fd.map(([iso])=>fmtISO(iso)),
+      datasets:[
+        {label:'ADS',data:fd.map(([,d])=>d.gasto),borderColor:'rgba(59,130,246,.8)',backgroundColor:'rgba(59,130,246,.08)',fill:true,tension:.4,pointRadius:2,pointBackgroundColor:'#3b82f6'},
+        {label:'Lucro',data:fd.map(([,d])=>d.lucro),borderColor:'rgba(34,197,94,.8)',backgroundColor:'rgba(34,197,94,.08)',fill:true,tension:.4,pointRadius:2,pointBackgroundColor:'#22c55e'}
+      ]
+    },{...chartDefaults,plugins:{...chartDefaults.plugins,tooltip},scales:{...chartDefaults.scales,y:{...chartDefaults.scales.y,ticks:yTick}}});
+  } else {
+    mkChart('chart','bar',{
+      labels:fd.map(([iso])=>fmtISO(iso)),
+      datasets:[
+        {label:'ADS',data:fd.map(([,d])=>d.gasto),backgroundColor:'rgba(59,130,246,.6)',borderRadius:5,barPercentage:.7},
+        {label:'Lucro',data:fd.map(([,d])=>d.lucro),backgroundColor:fd.map(([,d])=>d.lucro>=0?'rgba(34,197,94,.7)':'rgba(239,68,68,.65)'),borderRadius:5,barPercentage:.7}
+      ]
+    },{...chartDefaults,plugins:{...chartDefaults.plugins,tooltip},scales:{...chartDefaults.scales,y:{...chartDefaults.scales.y,ticks:yTick}}});
+  }
 }
 
 function renderTable(){
