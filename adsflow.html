@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>adsflow</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0f0f10;color:#f0f0f0;font-family:'DM Sans',sans-serif;min-height:100vh;padding:2rem 1.5rem 4rem}
+.container{max-width:960px;margin:0 auto}
+.header{display:flex;align-items:center;justify-content:space-between;padding-bottom:1.25rem;border-bottom:.5px solid rgba(255,255,255,.07);margin-bottom:1.75rem}
+.logo{font-size:24px;font-weight:500;letter-spacing:-.5px;color:#f0f0f0}.logo span{color:#3b82f6}
+.header-right{display:flex;align-items:center;gap:12px}
+.sync-status{font-size:11px;color:#555;display:flex;align-items:center;gap:5px}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:#555}
+.sync-dot.online{background:#22c55e}
+.period-tabs{display:flex;gap:6px}
+.ptab{font-size:12px;padding:5px 14px;border:.5px solid rgba(255,255,255,.13);border-radius:8px;background:transparent;color:#888;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s}
+.ptab:hover,.ptab.on{background:#222226;color:#f0f0f0}
+.metrics-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.5rem}
+.metric-card{background:#1a1a1d;border:.5px solid rgba(255,255,255,.07);border-radius:10px;padding:1.1rem}
+.metric-label{font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.metric-value{font-size:26px;font-weight:500;line-height:1;font-family:'DM Mono',monospace;color:#f0f0f0}
+.metric-sub{font-size:11px;color:#555;margin-top:6px}
+.c-blue{color:#3b82f6!important}.c-green{color:#22c55e!important}.c-red{color:#ef4444!important}
+.input-card{background:#1a1a1d;border:.5px solid rgba(255,255,255,.07);border-radius:10px;padding:1.25rem;margin-bottom:1.5rem}
+.section-label{font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px;font-weight:500}
+.input-row{display:flex;gap:10px;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:6px;flex:1}
+.field label{font-size:12px;color:#888}
+.input-group{display:flex;align-items:center;height:44px;background:#222226;border:.5px solid rgba(255,255,255,.13);border-radius:8px;overflow:hidden;transition:border-color .15s,box-shadow .15s}
+.input-group:focus-within{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+.input-group .prefix{padding:0 6px 0 12px;font-size:12px;color:#555;font-family:'DM Mono',monospace;white-space:nowrap;flex-shrink:0}
+.input-group input{flex:1;height:100%;background:transparent;border:none;outline:none;color:#f0f0f0;font-family:'DM Mono',monospace;font-size:15px;font-weight:500;padding:0 12px 0 0;min-width:0}
+.input-group input::placeholder{color:#555;font-weight:400;font-size:13px}
+.field input[type=date]{width:100%;height:44px;background:#222226;border:.5px solid rgba(255,255,255,.13);border-radius:8px;color:#f0f0f0;font-family:'DM Mono',monospace;font-size:13px;padding:0 12px;outline:none;color-scheme:dark;transition:border-color .15s,box-shadow .15s}
+.field input[type=date]:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+.btn-save{flex-shrink:0;height:44px;padding:0 22px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;white-space:nowrap;transition:background .15s,transform .1s;align-self:flex-end}
+.btn-save:hover{background:#2563eb}.btn-save:active{transform:scale(.97)}
+.btn-save:disabled{background:#1e3a5f;cursor:not-allowed}
+.chart-card{background:#1a1a1d;border:.5px solid rgba(255,255,255,.07);border-radius:10px;padding:1.25rem;margin-bottom:1.5rem}
+.legend{display:flex;gap:14px;font-size:12px;color:#888;margin-bottom:14px}
+.leg-sq{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:5px;vertical-align:middle}
+.chart-inner{position:relative;width:100%;height:220px}
+.table-card{background:#1a1a1d;border:.5px solid rgba(255,255,255,.07);border-radius:10px;overflow:hidden}
+.table-head{padding:.9rem 1.25rem;border-bottom:.5px solid rgba(255,255,255,.07);font-size:12px;color:#888;font-weight:500;display:flex;align-items:center;justify-content:space-between}
+.table-count{font-size:11px;color:#555}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{padding:9px 1.25rem;text-align:left;font-size:11px;color:#555;font-weight:400;text-transform:uppercase;letter-spacing:.5px;border-bottom:.5px solid rgba(255,255,255,.07)}
+td{padding:12px 1.25rem;border-bottom:.5px solid rgba(255,255,255,.05)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.pill{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500;font-family:'DM Mono',monospace}
+.pill-g{background:rgba(34,197,94,.12);color:#22c55e}
+.pill-r{background:rgba(239,68,68,.12);color:#ef4444}
+.pill-b{background:rgba(59,130,246,.12);color:#3b82f6}
+.del{background:none;border:none;cursor:pointer;color:#444;font-size:13px;padding:4px 7px;border-radius:4px;transition:color .15s}
+.del:hover{color:#ef4444}
+.empty{text-align:center;padding:3rem;color:#555;font-size:14px}
+.today-tag{font-size:10px;background:rgba(59,130,246,.15);color:#3b82f6;padding:1px 7px;border-radius:3px;margin-left:6px;vertical-align:middle}
+.toast{position:fixed;bottom:24px;right:24px;background:#222226;border:.5px solid rgba(255,255,255,.13);color:#f0f0f0;padding:12px 18px;border-radius:8px;font-size:13px;opacity:0;transform:translateY(8px);transition:all .25s;pointer-events:none;z-index:999}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.err{border-color:#ef4444;color:#ef4444}
+@media(max-width:640px){
+  .metrics-grid{grid-template-columns:repeat(2,1fr)}
+  .input-row{flex-wrap:wrap}
+  .field{min-width:calc(50% - 5px)}
+  .btn-save{width:100%}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="logo">ads<span>flow</span></div>
+    <div class="header-right">
+      <div class="sync-status"><span class="sync-dot" id="syncDot"></span><span id="syncLabel">conectando...</span></div>
+      <div class="period-tabs">
+        <button class="ptab on" onclick="setPeriod(7,this)">7 dias</button>
+        <button class="ptab" onclick="setPeriod(30,this)">30 dias</button>
+        <button class="ptab" onclick="setPeriod(0,this)">Tudo</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="metrics-grid">
+    <div class="metric-card"><div class="metric-label">Total investido</div><div class="metric-value c-blue" id="mGasto">R$ 0,00</div><div class="metric-sub" id="mDias">0 dias registrados</div></div>
+    <div class="metric-card"><div class="metric-label">Lucro líquido</div><div class="metric-value" id="mLucro">R$ 0,00</div><div class="metric-sub">no período</div></div>
+    <div class="metric-card"><div class="metric-label">ROI</div><div class="metric-value" id="mROI">+0.0%</div><div class="metric-sub">lucro / investimento</div></div>
+    <div class="metric-card"><div class="metric-label">ROAS</div><div class="metric-value" id="mROAS">0.00x</div><div class="metric-sub">retorno por R$ 1 investido</div></div>
+    <div class="metric-card"><div class="metric-label">Melhor dia</div><div class="metric-value c-green" id="mMelhor">—</div><div class="metric-sub" id="mMelhorSub">—</div></div>
+    <div class="metric-card"><div class="metric-label">Média diária de lucro</div><div class="metric-value" id="mMedia">R$ 0,00</div><div class="metric-sub">por dia com registro</div></div>
+  </div>
+
+  <div class="input-card">
+    <div class="section-label">Registrar dia</div>
+    <div class="input-row">
+      <div class="field">
+        <label>Data</label>
+        <input type="date" id="iData">
+      </div>
+      <div class="field">
+        <label>Gasto em ADS</label>
+        <div class="input-group"><span class="prefix">R$</span><input type="number" id="iGasto" placeholder="0,00" min="0" step="0.01"></div>
+      </div>
+      <div class="field">
+        <label>Lucro do dia</label>
+        <div class="input-group"><span class="prefix">R$</span><input type="number" id="iLucro" placeholder="0,00" step="0.01"></div>
+      </div>
+      <button class="btn-save" id="btnSalvar" onclick="salvar()">+ Salvar dia</button>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="legend">
+      <span><span class="leg-sq" style="background:rgba(59,130,246,.7)"></span>ADS</span>
+      <span><span class="leg-sq" style="background:rgba(34,197,94,.7)"></span>Lucro</span>
+    </div>
+    <div class="chart-inner"><canvas id="chart"></canvas></div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-head">
+      <span>Registros</span>
+      <span class="table-count" id="tableCount"></span>
+    </div>
+    <div id="tableWrap"><div class="empty">Carregando...</div></div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://oxeimicsrrptaoxuermo.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94ZWltaWNzcnJwdGFveHVlcm1vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNjU2MjMsImV4cCI6MjA5MDg0MTYyM30.5YqGX278N6LHbEzCT_l6kZjZNva9iFUbB7HubK95uz0';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let days = [], period = 7, chartInst = null;
+
+const todayISO = () => new Date().toISOString().slice(0, 10);
+const fmtISO = iso => { const [y,m,d] = iso.split('-'); return d+'/'+m+'/'+y; };
+const fmtBRL = v => 'R$ ' + Math.abs(v).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+function toast(msg, err=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (err ? ' err' : '');
+  setTimeout(() => t.className = 'toast', 3000);
+}
+
+function setSync(online) {
+  document.getElementById('syncDot').className = 'sync-dot' + (online ? ' online' : '');
+  document.getElementById('syncLabel').textContent = online ? 'sincronizado' : 'sem conexão';
+}
+
+async function load() {
+  document.getElementById('iData').value = todayISO();
+  try {
+    const { data, error } = await supabase.from('registros').select('*').order('data', { ascending: true });
+    if (error) throw error;
+    days = data.map(d => ({ id: d.id, data: d.data, gasto: d.gasto, lucro: d.lucro }));
+    setSync(true);
+  } catch(e) {
+    setSync(false);
+    toast('Erro ao carregar dados', true);
+  }
+  render();
+}
+
+async function salvar() {
+  const dt = document.getElementById('iData').value;
+  const g = parseFloat(document.getElementById('iGasto').value);
+  const l = parseFloat(document.getElementById('iLucro').value);
+  if (!dt || isNaN(g) || isNaN(l) || g < 0) { toast('Preencha todos os campos corretamente.', true); return; }
+
+  const btn = document.getElementById('btnSalvar');
+  btn.disabled = true; btn.textContent = 'Salvando...';
+
+  const existing = days.find(d => d.data === dt);
+  try {
+    if (existing) {
+      if (!confirm('Já existe um registro para essa data. Substituir?')) { btn.disabled=false; btn.textContent='+ Salvar dia'; return; }
+      const { error } = await supabase.from('registros').update({ gasto: g, lucro: l }).eq('id', existing.id);
+      if (error) throw error;
+      existing.gasto = g; existing.lucro = l;
+    } else {
+      const { data, error } = await supabase.from('registros').insert({ data: dt, gasto: g, lucro: l }).select().single();
+      if (error) throw error;
+      days.push({ id: data.id, data: dt, gasto: g, lucro: l });
+    }
+    document.getElementById('iGasto').value = '';
+    document.getElementById('iLucro').value = '';
+    document.getElementById('iData').value = todayISO();
+    toast('Registro salvo com sucesso!');
+    render();
+  } catch(e) {
+    toast('Erro ao salvar. Tente novamente.', true);
+  }
+  btn.disabled = false; btn.textContent = '+ Salvar dia';
+}
+
+async function del(id, dt) {
+  if (!confirm('Deletar registro de ' + fmtISO(dt) + '?')) return;
+  try {
+    const { error } = await supabase.from('registros').delete().eq('id', id);
+    if (error) throw error;
+    days = days.filter(d => d.id !== id);
+    toast('Registro deletado.');
+    render();
+  } catch(e) {
+    toast('Erro ao deletar.', true);
+  }
+}
+
+function setPeriod(p, btn) {
+  period = p;
+  document.querySelectorAll('.ptab').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on'); render();
+}
+
+function filtered() {
+  const s = [...days].sort((a,b) => a.data.localeCompare(b.data));
+  if (!period) return s;
+  const cut = new Date(); cut.setDate(cut.getDate() - period);
+  return s.filter(d => new Date(d.data) >= cut);
+}
+
+function render() {
+  const fd = filtered();
+  const tG = fd.reduce((a,d) => a+d.gasto, 0);
+  const tL = fd.reduce((a,d) => a+d.lucro, 0);
+  const roi = tG > 0 ? (tL/tG)*100 : 0;
+  const roas = tG > 0 ? (tL+tG)/tG : 0;
+  const n = fd.length;
+  const best = days.length ? [...days].reduce((a,b) => b.lucro > a.lucro ? b : a) : null;
+  const media = n ? tL/n : 0;
+
+  document.getElementById('mGasto').textContent = fmtBRL(tG);
+  document.getElementById('mDias').textContent = n + (n===1?' dia':' dias') + ' registrados';
+  const mL = document.getElementById('mLucro'); mL.textContent = fmtBRL(tL); mL.className = 'metric-value '+(tL>0?'c-green':tL<0?'c-red':'');
+  const mR = document.getElementById('mROI'); mR.textContent = (roi>=0?'+':'')+roi.toFixed(1)+'%'; mR.className = 'metric-value '+(roi>0?'c-green':roi<0?'c-red':'');
+  const mROAS = document.getElementById('mROAS'); mROAS.textContent = roas.toFixed(2)+'x'; mROAS.className = 'metric-value '+(roas>=2?'c-green':roas>=1?'':'c-red');
+  if (best&&best.data) { document.getElementById('mMelhor').textContent = fmtBRL(best.lucro); document.getElementById('mMelhorSub').textContent = fmtISO(best.data); }
+  const mM = document.getElementById('mMedia'); mM.textContent = fmtBRL(media); mM.className = 'metric-value '+(media>0?'c-green':media<0?'c-red':'');
+  document.getElementById('tableCount').textContent = days.length + ' dias no total';
+  renderChart(fd); renderTable();
+}
+
+function renderChart(fd) {
+  const c = document.getElementById('chart');
+  if (chartInst) { chartInst.destroy(); chartInst = null; }
+  if (!fd.length) return;
+  chartInst = new Chart(c, {type:'bar',data:{labels:fd.map(d=>fmtISO(d.data)),datasets:[
+    {label:'ADS',data:fd.map(d=>d.gasto),backgroundColor:'rgba(59,130,246,.6)',borderRadius:4,barPercentage:.7},
+    {label:'Lucro',data:fd.map(d=>d.lucro),backgroundColor:fd.map(d=>d.lucro>=0?'rgba(34,197,94,.65)':'rgba(239,68,68,.6)'),borderRadius:4,barPercentage:.7}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+fmtBRL(ctx.parsed.y)}}},scales:{x:{ticks:{color:'#555',font:{size:10},maxRotation:35},grid:{display:false},border:{color:'rgba(255,255,255,.05)'}},y:{ticks:{color:'#555',font:{size:10},callback:v=>'R$'+(Math.abs(v)>=1000?(v/1000).toFixed(1)+'k':v)},grid:{color:'rgba(255,255,255,.04)'},border:{color:'transparent'}}}}});
+}
+
+function renderTable() {
+  const wrap = document.getElementById('tableWrap');
+  const sorted = [...days].sort((a,b) => b.data.localeCompare(a.data));
+  if (!sorted.length) { wrap.innerHTML = '<div class="empty">Nenhum registro ainda. Adicione o primeiro dia acima.</div>'; return; }
+  const rows = sorted.map(d => {
+    const roi = d.gasto>0 ? (d.lucro/d.gasto)*100 : 0;
+    const roas = d.gasto>0 ? (d.lucro+d.gasto)/d.gasto : 0;
+    const pos = d.lucro >= 0;
+    const isToday = d.data === todayISO();
+    return `<tr>
+      <td style="color:#888;font-size:12px;font-family:'DM Mono',monospace">${fmtISO(d.data)}${isToday?'<span class="today-tag">hoje</span>':''}</td>
+      <td style="color:#3b82f6;font-weight:500;font-family:'DM Mono',monospace">${fmtBRL(d.gasto)}</td>
+      <td style="color:${pos?'#22c55e':'#ef4444'};font-weight:500;font-family:'DM Mono',monospace">${pos?'':'-'}${fmtBRL(d.lucro)}</td>
+      <td><span class="pill ${roi>0?'pill-g':roi<0?'pill-r':'pill-b'}">${roi>=0?'+':''}${roi.toFixed(1)}%</span></td>
+      <td><span class="pill pill-b">${roas.toFixed(2)}x</span></td>
+      <td><button class="del" onclick="del(${d.id},'${d.data}')">✕</button></td>
+    </tr>`;
+  }).join('');
+  wrap.innerHTML = `<table><thead><tr><th>Data</th><th>ADS</th><th>Lucro</th><th>ROI</th><th>ROAS</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+load();
+</script>
+</body>
+</html>
