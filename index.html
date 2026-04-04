@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="dark">
 <head>
@@ -91,7 +90,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 
 /* ── Pages ── */
-.page{display:none;padding:1.5rem;flex:1;flex-direction:column;gap:1.25rem;animation:fadeUp .35s ease}
+.page{display:none;padding:1.5rem;flex:1;flex-direction:column;gap:1.25rem;animation:fadeUp .2s ease}
 .page.active{display:flex}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 
@@ -127,7 +126,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .trend.neutral{background:var(--card2);color:var(--text3)}
 
 /* ── Skeleton ── */
-.skeleton{background:linear-gradient(90deg,var(--card2) 25%,var(--border) 50%,var(--card2) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px}
+.skeleton{background:var(--card2);border-radius:6px}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 .skel-value{height:26px;width:70%;margin-bottom:6px}
 .skel-sub{height:12px;width:50%}
@@ -160,10 +159,18 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 
 /* ── Goal bar ── */
 .goal-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.goal-track{height:14px;background:var(--card2);border-radius:10px;overflow:visible;margin:10px 0 6px;position:relative}
+.goal-fill{height:100%;border-radius:10px;transition:width .6s cubic-bezier(.4,0,.2,1);position:relative;min-width:0}
+
+.goal-milestones{position:relative;height:0}
+.goal-milestone{position:absolute;top:-20px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:2px}
+.goal-milestone-line{width:1px;height:10px;background:var(--border2)}
+.goal-milestone-label{font-size:9px;color:var(--text3);white-space:nowrap;font-weight:600}
+.goal-milestone-tick{position:absolute;top:0;width:2px;height:14px;background:var(--border2);transform:translateX(-50%)}
 .goal-label{font-size:12px;color:var(--text2);font-weight:500}
 .goal-value{font-size:12px;font-weight:700}
 .goal-bar-wrap{height:6px;background:var(--card2);border-radius:10px;overflow:hidden;margin-bottom:1rem}
-.goal-bar{height:100%;border-radius:10px;transition:width 1s cubic-bezier(.4,0,.2,1)}
+.goal-bar{height:100%;border-radius:10px;transition:width .5s ease}
 
 /* ── Table ── */
 .table-wrap{overflow-x:auto}
@@ -347,18 +354,45 @@ tr:hover td{background:rgba(59,130,246,.04)}
       </div>
     </div>
 
-    <!-- Meta de ROI -->
+    <!-- Metas de Lucro -->
     <div class="section-card" id="goalCard">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <div class="section-head" style="margin-bottom:0"><div class="s-bar" style="background:var(--purple);box-shadow:0 0 8px var(--purple)"></div><div class="s-title">Meta de ROI</div></div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <input type="number" id="goalInput" placeholder="Ex: 150" style="width:90px;height:28px;background:var(--card2);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:'Inter',sans-serif;font-size:12px;padding:0 8px;outline:none;text-align:center" onchange="saveGoal()">
-          <span style="font-size:12px;color:var(--text3)">% de meta</span>
-        </div>
+      <div class="section-head" style="margin-bottom:10px">
+        <div class="s-bar" style="background:var(--green);box-shadow:0 0 8px var(--green)"></div>
+        <div class="s-title">Metas de lucro líquido</div>
+        <span style="margin-left:auto;font-size:12px;font-weight:700;color:var(--text2)" id="goalLucroAtual">—</span>
       </div>
-      <div class="goal-row"><span class="goal-label" id="goalLabel">ROI atual</span><span class="goal-value" id="goalCurrent">0%</span></div>
-      <div class="goal-bar-wrap"><div class="goal-bar" id="goalBar" style="width:0%;background:var(--blue)"></div></div>
-      <div style="font-size:11px;color:var(--text3)" id="goalStatus">Defina uma meta de ROI acima</div>
+
+      <!-- Milestones labels -->
+      <div style="position:relative;height:20px;margin:0 0 0">
+        <span style="position:absolute;left:calc(160000/350000*100%);transform:translateX(-50%);font-size:9px;color:var(--text3);font-weight:600;white-space:nowrap">M1</span>
+        <span style="position:absolute;left:calc(200000/350000*100%);transform:translateX(-50%);font-size:9px;color:var(--text3);font-weight:600;white-space:nowrap">M2</span>
+        <span style="position:absolute;left:calc(260000/350000*100%);transform:translateX(-50%);font-size:9px;color:var(--text3);font-weight:600;white-space:nowrap">M3</span>
+        <span style="position:absolute;right:0;font-size:9px;color:var(--yellow);font-weight:700">🏆</span>
+      </div>
+
+      <!-- Single progress bar -->
+      <div class="goal-track" style="margin-top:0">
+        <!-- Milestone ticks -->
+        <div style="position:absolute;left:calc(160000/350000*100%);top:0;width:2px;height:100%;background:rgba(255,255,255,.2);z-index:1"></div>
+        <div style="position:absolute;left:calc(200000/350000*100%);top:0;width:2px;height:100%;background:rgba(255,255,255,.2);z-index:1"></div>
+        <div style="position:absolute;left:calc(260000/350000*100%);top:0;width:2px;height:100%;background:rgba(255,255,255,.2);z-index:1"></div>
+        <div class="goal-fill" id="goalBarMain" style="width:0%;background:linear-gradient(90deg,#22c55e,#3b82f6)"></div>
+      </div>
+
+      <!-- Values below bar -->
+      <div style="display:flex;justify-content:space-between;margin-top:6px;margin-bottom:10px">
+        <span style="font-size:10px;color:var(--text3)">R$ 0</span>
+        <span style="font-size:10px;color:var(--text3);position:absolute;left:calc(160000/350000*100%);transform:translateX(-50%)">160k</span>
+        <span style="font-size:10px;color:var(--text3);position:absolute;left:calc(200000/350000*100%);transform:translateX(-50%)">200k</span>
+        <span style="font-size:10px;color:var(--text3);position:absolute;left:calc(260000/350000*100%);transform:translateX(-50%)">260k</span>
+        <span style="font-size:10px;color:var(--yellow);font-weight:600">350k</span>
+      </div>
+
+      <!-- Status row -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
+        <span style="font-size:12px;color:var(--text3)" id="goalStatus">Carregando...</span>
+        <span style="font-size:18px;font-weight:800;letter-spacing:-.5px" id="goalPctMain">0%</span>
+      </div>
     </div>
 
     <div class="metrics-grid">
@@ -501,7 +535,7 @@ const supa=window.supabase.createClient(SUPA_URL,SUPA_KEY);
 
 // ── Config ──
 let CFG={
-  metaToken:'EAAhZA0V5MmTkBRLewD6O5nOmb7WxfKdHnXX7zIId0IZCOddRCsaWdzP5zTQp0PFTY1rGDLqWNcZAYUB2vshwi8KaIWpigV8xLmaqi6jvDRreMlug5me9sHfQOCwL0aDeIGn7iZA5Db2PP5oBulQFcGsY2CrduXZCXH9vkIWwdVIHjEEtbS85Xsyj59TmkV7Y41qAK7sq374VDFKKH4I77GBiwQbdTcOd8FJ7PjN8zovHSNcPioxrZAZB9i25ItErkrDahegEBP8MF2YXR4KbhfikwrZAy8R4kuq0BxyNLDYZD',
+  metaToken:'EAAhZA0V5MmTkBRJI2ZCjnVFg1q7Jl8Edzb7jVvEcbafXS7xQ7dsZCyonOY4VjtxO997xhw8YHT7YZA1gnZBzZAAB8Im6YOAwIiaoVCbDKXUYuM8axarl0W7m6RZCZCjX3izKsMqqBk9FtZAOznWCpIBxhKFx7W6ut2elgaz0AuTYefzdGZAhgZAlZCPGdJNsBy4rjqmoLJqvwGFeszlnBG4s',
   metaAccount:'act_1455012942253844',
   colData:0,colLucro:9,
   sheetsURL:'https://docs.google.com/spreadsheets/d/e/2PACX-1vQjIisa1V3kcKwfVAJrtMc243DHCHDj0P22zJICXb1dcjqjkCgn97zpNza7SY0k4nOYOwW2SuGNHzS6/pub?gid=761693994&single=true&output=csv',
@@ -509,8 +543,8 @@ let CFG={
 const saved=localStorage.getItem('af-cfg');
 if(saved){try{CFG={...CFG,...JSON.parse(saved)};}catch(e){}}
 
-let days={},period=7,chartPeriod=7,charts={},goalROI=0;
-goalROI=parseFloat(localStorage.getItem('af-goal')||'0');
+let days={},period=7,chartPeriod=7,charts={};
+
 
 // ── Utils ──
 const todayISO=()=>new Date().toISOString().slice(0,10);
@@ -626,19 +660,28 @@ async function syncSheets(){
   const dot=document.getElementById('dotSheets');
   const lbl=document.getElementById('lblSheets');
   dot.className='source-dot loading';lbl.textContent='Sheets...';
-  const proxies=[
-    `https://api.allorigins.win/raw?url=${encodeURIComponent(CFG.sheetsURL)}`,
-    `https://corsproxy.io/?${encodeURIComponent(CFG.sheetsURL)}`,
-    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(CFG.sheetsURL)}`,
-  ];
   let text=null;
-  for(const proxy of proxies){try{const res=await fetch(proxy,{signal:AbortSignal.timeout(10000)});if(res.ok){text=await res.text();if(text.length>50)break;}}catch(e){}}
+  try{
+    const r=await fetch('/api/sheets');
+    const j=await r.json();
+    if(j.error)throw new Error(j.error);
+    text=j.csv;
+  }catch(e){dot.className='source-dot err';lbl.textContent='Sheets ✗';toast('Erro ao carregar planilha','err');return;}
   if(!text||text.length<50){dot.className='source-dot err';lbl.textContent='Sheets ✗';toast('Erro ao carregar planilha','err');return;}
   const rows=parseCSV(text);let count=0;
+  if(rows.length<2){dot.className='source-dot err';lbl.textContent='Sheets ✗';return;}
+  // Auto-detect columns by header name
+  const header=rows[0].map(h=>h.trim().replace(/"/g,'').toLowerCase());
+  let idxData=CFG.colData,idxLucro=CFG.colLucro;
+  header.forEach((h,i)=>{
+    if(h.includes('lucro'))idxLucro=i;
+    if(h==='abril'||h==='data'||h==='date')idxData=i;
+  });
   for(let i=1;i<rows.length;i++){
-    const cols=rows[i];if(!cols[CFG.colData])continue;
-    const iso=parseDateBR(cols[CFG.colData]);if(!iso)continue;
-    const lucro=parseNum(cols[CFG.colLucro]);
+    const cols=rows[i];if(!cols[idxData])continue;
+    const iso=parseDateBR(cols[idxData]);if(!iso)continue;
+    const lucro=parseNum(cols[idxLucro]);
+    if(!lucro&&lucro!==0)continue;
     if(!days[iso])days[iso]={gasto:0,lucro:0,srcG:'',srcL:''};
     days[iso].lucro+=lucro;days[iso].srcL='sheets';count++;
   }
@@ -650,23 +693,23 @@ async function syncMeta(){
   const dot=document.getElementById('dotMeta');
   const lbl=document.getElementById('lblMeta');
   dot.className='source-dot loading';lbl.textContent='Meta...';
-  const since=(()=>{const d=new Date();d.setDate(d.getDate()-90);return d.toISOString().slice(0,10);})();
   try{
-    const url=`https://graph.facebook.com/v19.0/${CFG.metaAccount}/insights?fields=spend,date_start&time_increment=1&time_range={"since":"${since}","until":"${todayISO()}"}&limit=90&access_token=${CFG.metaToken}`;
-    const res=await fetch(url);const data=await res.json();
-    if(data.error)throw new Error(data.error.message);
+    const res=await fetch('/api/meta');
+    const data=await res.json();
+    if(data.error)throw new Error(data.error);
     let count=0;
     (data.data||[]).forEach(item=>{
       const gasto=parseFloat(item.spend)||0;if(!gasto)return;
       const iso=item.date_start;
-      if(!days[iso])days[iso]={gasto:0,lucro:0,srcG:'',srcL:''};
+      // Só adiciona gasto do Meta se o dia JÁ existe na planilha
+      if(!days[iso])return;
       days[iso].gasto=gasto;days[iso].srcG='meta';count++;
     });
     dot.className='source-dot on';lbl.textContent='Meta ✓';
     toast(`✓ ${count} dias do Meta Ads`,'ok');
   }catch(e){
     dot.className='source-dot err';lbl.textContent='Meta ✗';
-    toast('Token Meta expirado — vá em Minha conta','err');
+    toast('Erro ao carregar Meta Ads: '+e.message,'err');
   }
 }
 
@@ -676,6 +719,7 @@ async function syncAll(){
   await syncSheets();await syncMeta();
   document.getElementById('updateTime').textContent='Atualizado às '+nowStr();
   renderResumo();
+  renderGoals();
 }
 
 // ── Period ──
@@ -689,7 +733,7 @@ function filteredFor(p){
 }
 
 // ── Animated counter ──
-function animateValue(el,target,prefix='',suffix='',duration=800){
+function animateValue(el,target,prefix='',suffix='',duration=350){
   const start=0,startTime=performance.now();
   function update(now){
     const elapsed=now-startTime;
@@ -703,25 +747,37 @@ function animateValue(el,target,prefix='',suffix='',duration=800){
 }
 
 // ── Goal ──
-function saveGoal(){
-  goalROI=parseFloat(document.getElementById('goalInput').value)||0;
-  localStorage.setItem('af-goal',goalROI);
-  updateGoal();
-}
-function updateGoal(){
-  if(!goalROI){document.getElementById('goalStatus').textContent='Defina uma meta de ROI acima';document.getElementById('goalBar').style.width='0%';return;}
-  const fd=filteredFor(period);
-  const tG=fd.reduce((a,[,d])=>a+d.gasto,0);
-  const tL=fd.reduce((a,[,d])=>a+d.lucro,0);
-  const roi=tG>0?(tL/tG)*100:0;
-  const pct=Math.min((roi/goalROI)*100,100);
-  const bar=document.getElementById('goalBar');
-  bar.style.background=pct>=100?'var(--green)':pct>=70?'var(--yellow)':'var(--blue)';
-  bar.style.width=pct+'%';
-  document.getElementById('goalCurrent').textContent=roi.toFixed(1)+'%';
-  document.getElementById('goalLabel').textContent=`ROI atual — Meta: ${goalROI}%`;
-  document.getElementById('goalStatus').textContent=pct>=100?`✓ Meta atingida! ROI ${roi.toFixed(1)}% de ${goalROI}%`:`${pct.toFixed(0)}% da meta — faltam ${(goalROI-roi).toFixed(1)} pontos`;
-  if(document.getElementById('goalInput').value==='')document.getElementById('goalInput').value=goalROI||'';
+function renderGoals(){
+  const SUPER=350000;
+  const METAS=[160000,200000,260000,350000];
+  const LABELS=['Meta 1','Meta 2','Meta 3','🏆 Super Meta'];
+  const now=new Date();const ym=now.toISOString().slice(0,7);
+  const lucroMes=Object.entries(days).filter(([iso])=>iso.startsWith(ym)).reduce((a,[,d])=>a+d.lucro,0);
+  document.getElementById('goalLucroAtual').textContent=fmtBRL(lucroMes);
+  const pctTotal=Math.min((lucroMes/SUPER)*100,100);
+  const pctEl=document.getElementById('goalPctMain');
+  pctEl.textContent=pctTotal.toFixed(1)+'%';
+  pctEl.style.color=pctTotal>=100?'var(--yellow)':lucroMes>0?'var(--green)':'var(--text3)';
+  const bar=document.getElementById('goalBarMain');
+  bar.style.width=pctTotal.toFixed(2)+'%';
+    setTimeout(()=>{
+    if(pctTotal>=100)bar.style.background='linear-gradient(90deg,#22c55e,#f59e0b)';
+    else if(pctTotal>74)bar.style.background='linear-gradient(90deg,#22c55e,#3b82f6,#a855f7)';
+    else if(pctTotal>57)bar.style.background='linear-gradient(90deg,#22c55e,#3b82f6)';
+    else bar.style.background='var(--green)';
+  },100);
+  const proxima=METAS.find(m=>lucroMes<m);
+  let statusMsg='';
+  if(lucroMes<=0){statusMsg='Aguardando dados do mês...';}
+  else if(!proxima){statusMsg='🏆 Parabéns! Todas as metas atingidas!';}
+  else{
+    const falta=proxima-lucroMes;
+    const idx=METAS.indexOf(proxima);
+    const mAnt=idx>0?METAS[idx-1]:0;
+    const pctMeta=((lucroMes-mAnt)/(proxima-mAnt)*100).toFixed(0);
+    statusMsg=`${pctMeta}% para ${LABELS[idx]} — faltam ${fmtBRL(falta)}`;
+  }
+  document.getElementById('goalStatus').textContent=statusMsg;
 }
 
 // ── Resumo ──
@@ -769,7 +825,7 @@ function renderResumo(){
   const mMarg=document.getElementById('mMargem');mMarg.textContent=margem!==null?margem.toFixed(1)+'%':'N/A';mMarg.className='metric-value '+(margem>0?'c-green':margem<0?'c-red':'');
   document.getElementById('tableCount').textContent=Object.keys(days).length+' dias';
 
-  updateGoal();
+  renderGoals();
   renderMainChart(filteredFor(chartPeriod));
   renderTable();
 }
@@ -948,7 +1004,7 @@ function loadPrefs(){
   document.documentElement.dataset.theme=theme;
   if(theme==='light'){const icon=document.getElementById('themeIcon');icon.innerHTML='<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';}
   loadPrefs();
-  if(goalROI)document.getElementById('goalInput').value=goalROI;
+
   const{data}=await supa.auth.getSession();
   if(data.session){showApp(data.session.user.email);}
 })();
