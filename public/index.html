@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>adsflow — Dashboard</title>
+<meta name="theme-color" content="#0b0e14">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="adsflow">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%233b82f6'/><path d='M6 16h4l3-8 4 16 3-8h6' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg:#0b0e14;--sidebar:#0f1319;--card:#141923;--card2:#1a2030;
+  --border:#1e2535;--border2:#252d40;--text:#e2e8f0;--text2:#7d8fa8;--text3:#3d4f63;
+  --blue:#3b82f6;--blue2:#2563d4;--blue-glow:rgba(59,130,246,0.15);
+  --green:#22c55e;--green-dim:rgba(34,197,94,0.12);
+  --red:#ef4444;--red-dim:rgba(239,68,68,0.12);
+  --yellow:#f59e0b;--yellow-dim:rgba(245,158,11,0.12);
+  --purple:#a855f7;--sidebar-w:220px;
+}
+[data-theme="light"]{
+  --bg:#f4f6fb;--sidebar:#fff;--card:#fff;--card2:#f0f2f8;
+  --border:#e2e8f0;--border2:#cbd5e1;--text:#0f172a;--text2:#475569;--text3:#94a3b8;
+  --blue-glow:rgba(59,130,246,0.1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:14px;min-height:100vh;display:flex;overflow-x:hidden;transition:background .3s,color .3s}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:10px}
+
+/* ── Login ── */
+.login-overlay{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999;transition:opacity .4s}
+.login-overlay.hide{opacity:0;pointer-events:none}
+.login-box{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:2.5rem 2rem;width:100%;max-width:380px;animation:fadeUp .5s ease}
+.login-logo{display:flex;align-items:center;gap:10px;margin-bottom:2rem;justify-content:center}
+.login-logo-icon{width:38px;height:38px;background:var(--blue);border-radius:10px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px var(--blue-glow)}
+.login-logo-text{font-size:22px;font-weight:700;letter-spacing:-.5px}.login-logo-text span{color:var(--blue)}
+.login-title{font-size:17px;font-weight:700;margin-bottom:4px;text-align:center}
+.login-sub{font-size:13px;color:var(--text3);margin-bottom:1.75rem;text-align:center}
+.login-field{display:flex;flex-direction:column;gap:6px;margin-bottom:1rem}
+.login-field label{font-size:12px;color:var(--text2);font-weight:500}
+.login-field input{height:46px;background:var(--card2);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-family:'Inter',sans-serif;font-size:14px;padding:0 14px;outline:none;transition:all .2s;width:100%}
+.login-field input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+.login-field input::placeholder{color:var(--text3)}
+.btn-login{width:100%;height:48px;background:var(--blue);color:#fff;border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;margin-top:.5rem;letter-spacing:.2px}
+.btn-login:hover{background:var(--blue2);box-shadow:0 6px 20px var(--blue-glow);transform:translateY(-1px)}
+.btn-login:active{transform:scale(.98)}
+.btn-login:disabled{background:#1e3a5f;cursor:not-allowed;transform:none;box-shadow:none}
+.login-error{font-size:12px;color:var(--red);text-align:center;margin-top:.75rem;min-height:18px}
+
+/* ── Sidebar ── */
+.sidebar{width:var(--sidebar-w);background:var(--sidebar);border-right:1px solid var(--border);height:100vh;position:fixed;left:0;top:0;display:flex;flex-direction:column;z-index:200;transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.sidebar-logo{padding:1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.logo-icon{width:30px;height:30px;background:var(--blue);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 12px var(--blue-glow)}
+.logo-text{font-size:16px;font-weight:700;letter-spacing:-.5px}.logo-text span{color:var(--blue)}
+.sidebar-nav{flex:1;padding:.5rem 0;overflow-y:auto}
+.nav-section{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);padding:.75rem 1.25rem .3rem;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:9px;padding:.6rem 1.25rem;color:var(--text2);cursor:pointer;font-size:13px;font-weight:500;border-left:2px solid transparent;transition:all .15s;user-select:none;border-radius:0 8px 8px 0;margin-right:8px}
+.nav-item:hover{background:rgba(59,130,246,.06);color:var(--text)}
+.nav-item.active{background:var(--blue-glow);color:var(--blue);border-left-color:var(--blue)}
+.nav-item svg{width:15px;height:15px;flex-shrink:0}
+.sidebar-footer{padding:.9rem 1.25rem;border-top:1px solid var(--border)}
+.s-user{display:flex;align-items:center;gap:9px}
+.avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--blue),#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;color:#fff}
+.user-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px}
+.user-plan{font-size:11px;color:var(--text3)}
+.logout-btn{background:none;border:none;color:var(--text3);font-size:11px;cursor:pointer;font-family:'Inter',sans-serif;padding:0;transition:color .15s}
+.logout-btn:hover{color:var(--red)}
+
+/* ── Main ── */
+.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{background:var(--sidebar);border-bottom:1px solid var(--border);padding:0 1.5rem;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(8px)}
+.topbar-left{display:flex;align-items:center;gap:10px}
+.hamburger{display:none;background:none;border:none;color:var(--text2);cursor:pointer;padding:5px;border-radius:6px}
+.hamburger:hover{background:var(--card2);color:var(--text)}
+.topbar-title{font-size:14px;font-weight:600}.topbar-sub{font-size:13px;color:var(--text3)}
+.topbar-right{display:flex;align-items:center;gap:8px}
+.theme-btn{width:32px;height:32px;border-radius:8px;background:var(--card2);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;color:var(--text2)}
+.theme-btn:hover{background:var(--card);color:var(--text)}
+.topbar-badges{display:flex;align-items:center;gap:6px}
+.source-badge{display:flex;align-items:center;gap:5px;font-size:11px;padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:var(--card);transition:all .3s}
+.source-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);transition:all .3s;flex-shrink:0}
+.source-dot.on{background:var(--green);box-shadow:0 0 6px rgba(34,197,94,.6)}
+.source-dot.loading{background:var(--yellow);animation:pulse 1s infinite}
+.source-dot.err{background:var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── Pages ── */
+.page{display:none;padding:1.5rem;flex:1;flex-direction:column;gap:1.25rem;animation:fadeUp .2s ease}
+.page.active{display:flex}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Page header ── */
+.page-header{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.page-header h1{font-size:20px;font-weight:700;margin-bottom:3px;letter-spacing:-.3px}
+.page-header p{font-size:12px;color:var(--text3)}
+.page-header-right{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}
+.date-range{display:flex;align-items:flex-end;gap:6px;background:var(--card);border:1px solid var(--border2);border-radius:8px;padding:4px 8px;height:34px}
+.date-range input[type=date]{background:transparent;border:none;color:var(--text);font-family:'Inter',sans-serif;font-size:12px;outline:none;cursor:pointer;height:100%}
+.date-range input[type=date]::-webkit-calendar-picker-indicator{filter:invert(0.6);cursor:pointer}
+.date-sep{font-size:12px;color:var(--text3);flex-shrink:0}
+.date-range-active{border-color:var(--blue)!important;box-shadow:0 0 0 2px var(--blue-glow)}
+.filter-group{display:flex;flex-direction:column;gap:4px}
+.filter-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.filter-select{height:34px;background:var(--card);border:1px solid var(--border2);color:var(--text);font-family:'Inter',sans-serif;font-size:12px;padding:0 10px;border-radius:8px;outline:none;cursor:pointer;transition:border-color .15s}
+.filter-select:focus{border-color:var(--blue)}
+.btn-primary{height:34px;padding:0 16px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:all .2s}
+.btn-primary:hover{background:var(--blue2);box-shadow:0 4px 12px var(--blue-glow);transform:translateY(-1px)}
+.btn-primary:active{transform:scale(.97)}
+.btn-secondary{height:34px;padding:0 16px;background:transparent;color:var(--text2);border:1px solid var(--border2);border-radius:8px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:all .15s}
+.btn-secondary:hover{background:var(--card2);color:var(--text)}
+
+/* ── Today vs Yesterday banner ── */
+.today-banner{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.today-banner-left{display:flex;align-items:center;gap:12px}
+.today-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px rgba(34,197,94,.6);flex-shrink:0;animation:glow 2s infinite}
+@keyframes glow{0%,100%{box-shadow:0 0 8px rgba(34,197,94,.6)}50%{box-shadow:0 0 14px rgba(34,197,94,.9)}}
+.today-label{font-size:13px;font-weight:600}
+.today-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.today-stats{display:flex;gap:20px;flex-wrap:wrap}
+.today-stat{display:flex;flex-direction:column;gap:2px;text-align:right}
+.today-stat-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px}
+.today-stat-value{font-size:15px;font-weight:700}
+.trend{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:600;padding:2px 7px;border-radius:20px}
+.trend.up{background:var(--green-dim);color:var(--green)}
+.trend.down{background:var(--red-dim);color:var(--red)}
+.trend.neutral{background:var(--card2);color:var(--text3)}
+
+/* ── Skeleton ── */
+.skeleton{background:var(--card2);border-radius:6px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skel-value{height:26px;width:70%;margin-bottom:6px}
+.skel-sub{height:12px;width:50%}
+
+/* ── Metric cards ── */
+.metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.metrics-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.metric-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.1rem;transition:all .25s;position:relative;overflow:hidden}
+.metric-card::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(59,130,246,.03),transparent);pointer-events:none}
+.metric-card:hover{border-color:var(--border2);transform:translateY(-3px);box-shadow:0 12px 28px rgba(0,0,0,.25)}
+.metric-icon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;margin-bottom:12px}
+.ic-blue{background:rgba(59,130,246,.12)}.ic-green{background:rgba(34,197,94,.12)}.ic-red{background:rgba(239,68,68,.12)}.ic-purple{background:rgba(168,85,247,.12)}.ic-yellow{background:rgba(245,158,11,.12)}
+.metric-icon svg{width:15px;height:15px}
+.metric-label{font-size:11px;color:var(--text2);font-weight:500;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between}
+.metric-value{font-size:22px;font-weight:700;letter-spacing:-.5px;line-height:1}
+.metric-sub{font-size:11px;color:var(--text3);margin-top:6px;display:flex;align-items:center;gap:6px}
+.c-blue{color:var(--blue)!important}.c-green{color:var(--green)!important}.c-red{color:var(--red)!important}.c-yellow{color:var(--yellow)!important}
+
+/* ── Section card ── */
+.section-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.25rem}
+.section-head{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.s-bar{width:3px;height:16px;background:var(--blue);border-radius:2px;box-shadow:0 0 8px var(--blue)}
+.s-title{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.6px}
+.chart-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px}
+.legend{display:flex;gap:12px;font-size:12px;color:var(--text2);margin-top:6px}
+.leg-sq{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:4px;vertical-align:middle}
+.period-tabs{display:flex;gap:3px;background:var(--card2);padding:3px;border-radius:9px}
+.ptab{font-size:12px;padding:4px 12px;border-radius:7px;background:transparent;color:var(--text2);cursor:pointer;border:none;font-family:'Inter',sans-serif;font-weight:500;transition:all .15s}
+.ptab:hover{color:var(--text)}.ptab.on{background:var(--blue);color:#fff;box-shadow:0 2px 8px var(--blue-glow)}
+
+/* ── Goal bar ── */
+.goal-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.goal-track{height:14px;background:var(--card2);border-radius:10px;overflow:visible;margin:10px 0 6px;position:relative}
+.goal-fill{height:100%;border-radius:10px;transition:width .6s cubic-bezier(.4,0,.2,1);position:relative;min-width:0}
+
+.goal-milestones{position:relative;height:0}
+.goal-milestone{position:absolute;top:-20px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:2px}
+.goal-milestone-line{width:1px;height:10px;background:var(--border2)}
+.goal-milestone-label{font-size:9px;color:var(--text3);white-space:nowrap;font-weight:600}
+.goal-milestone-tick{position:absolute;top:0;width:2px;height:14px;background:var(--border2);transform:translateX(-50%)}
+.goal-label{font-size:12px;color:var(--text2);font-weight:500}
+.goal-value{font-size:12px;font-weight:700}
+.goal-bar-wrap{height:6px;background:var(--card2);border-radius:10px;overflow:hidden;margin-bottom:1rem}
+.goal-bar{height:100%;border-radius:10px;transition:width .5s ease}
+
+/* ── Table ── */
+.table-wrap{overflow-x:auto}
+.table-header{padding:.9rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.table-title{font-size:13px;font-weight:600}
+.table-count{font-size:11px;color:var(--text3);background:var(--card2);padding:3px 10px;border-radius:20px}
+table{width:100%;border-collapse:collapse}
+th{padding:9px 1.25rem;text-align:left;font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid var(--border);background:rgba(0,0,0,.08)}
+td{padding:11px 1.25rem;border-bottom:1px solid rgba(128,128,128,.08);font-size:13px}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(59,130,246,.04)}
+.pill{display:inline-block;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:700;letter-spacing:.2px}
+.pill-g{background:var(--green-dim);color:var(--green)}.pill-r{background:var(--red-dim);color:var(--red)}.pill-b{background:rgba(59,130,246,.12);color:var(--blue)}
+.src-tag{font-size:10px;padding:1px 6px;border-radius:4px;margin-left:5px;font-weight:600;vertical-align:middle}
+.src-sheets{background:rgba(34,197,94,.12);color:var(--green)}.src-meta{background:rgba(59,130,246,.12);color:var(--blue)}
+.empty{text-align:center;padding:3rem;color:var(--text3);font-size:14px}
+.today-tag{font-size:10px;background:rgba(59,130,246,.15);color:var(--blue);padding:2px 8px;border-radius:20px;margin-left:6px;font-weight:600}
+
+/* ── Settings ── */
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
+.settings-field{display:flex;flex-direction:column;gap:6px}
+.settings-field label{font-size:12px;color:var(--text2);font-weight:500}
+.settings-field input{height:42px;background:var(--card2);border:1px solid var(--border2);border-radius:9px;color:var(--text);font-family:'Inter',monospace;font-size:13px;padding:0 12px;outline:none;transition:all .15s;width:100%}
+.settings-field input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+.settings-field input::placeholder{color:var(--text3)}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:.85rem 0;border-bottom:1px solid var(--border)}
+.toggle-row:last-child{border-bottom:none}
+.toggle-label{font-size:13px;color:var(--text);font-weight:500}
+.toggle-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.toggle{position:relative;width:40px;height:22px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:var(--border2);border-radius:22px;cursor:pointer;transition:.3s}
+.toggle-slider:before{content:'';position:absolute;width:16px;height:16px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s;box-shadow:0 2px 4px rgba(0,0,0,.3)}
+.toggle input:checked+.toggle-slider{background:var(--blue)}
+.toggle input:checked+.toggle-slider:before{transform:translateX(18px)}
+.alert-box{padding:.9rem 1rem;border-radius:9px;font-size:13px;display:flex;align-items:flex-start;gap:10px}
+.alert-box.warn{background:var(--yellow-dim);border:1px solid rgba(245,158,11,.3);color:var(--yellow)}
+.alert-box.success{background:var(--green-dim);border:1px solid rgba(34,197,94,.3);color:var(--green)}
+.alert-box.info{background:var(--blue-glow);border:1px solid rgba(59,130,246,.3);color:var(--blue)}
+
+/* ── Charts grid ── */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--card);border:1px solid var(--border2);color:var(--text);padding:12px 16px;border-radius:12px;font-size:13px;font-weight:500;opacity:0;transform:translateY(12px);transition:all .3s cubic-bezier(.4,0,.2,1);pointer-events:none;z-index:9998;box-shadow:0 8px 28px rgba(0,0,0,.3);display:flex;align-items:center;gap:10px;max-width:320px}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast-bar{position:absolute;bottom:0;left:0;height:3px;border-radius:0 0 12px 12px;background:var(--blue);transition:width 3s linear}
+.toast.err .toast-bar{background:var(--red)}
+.toast.ok .toast-bar{background:var(--green)}
+
+/* ── Bottom nav (mobile) ── */
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--sidebar);border-top:1px solid var(--border);padding:.5rem 0;z-index:300;backdrop-filter:blur(12px)}
+.bottom-nav-inner{display:flex;align-items:center;justify-content:space-around}
+.bottom-nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:.4rem .75rem;cursor:pointer;color:var(--text3);transition:color .15s;border-radius:8px;min-width:56px}
+.bottom-nav-item.active{color:var(--blue)}
+.bottom-nav-item svg{width:20px;height:20px}
+.bottom-nav-item span{font-size:10px;font-weight:500}
+
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:199;backdrop-filter:blur(3px)}.overlay.show{display:block}
+
+/* ── Trend badge ── */
+.trend-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;margin-left:6px}
+.trend-badge.up{background:var(--green-dim);color:var(--green)}
+.trend-badge.down{background:var(--red-dim);color:var(--red)}
+.trend-badge.flat{background:var(--card2);color:var(--text3)}
+
+/* ── Projeção ── */
+.proj-card{background:linear-gradient(135deg,rgba(168,85,247,.1),rgba(59,130,246,.08));border:1px solid rgba(168,85,247,.2);border-radius:14px;padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.proj-left{display:flex;flex-direction:column;gap:4px}
+.proj-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.proj-value{font-size:24px;font-weight:800;letter-spacing:-.5px;color:var(--purple)}
+.proj-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.proj-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.proj-meta{font-size:12px;color:var(--text2)}
+
+/* ── Vendedor ranking ── */
+.vendor-list{display:flex;flex-direction:column;gap:8px}
+.vendor-row{display:flex;align-items:center;gap:10px}
+.vendor-rank{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.rank-1{background:rgba(245,158,11,.2);color:var(--yellow)}
+.rank-2{background:rgba(148,163,184,.15);color:#94a3b8}
+.rank-3{background:rgba(180,120,80,.15);color:#b47850}
+.rank-n{background:var(--card2);color:var(--text3)}
+.vendor-name{font-size:13px;font-weight:500;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vendor-bar-wrap{width:80px;height:6px;background:var(--card2);border-radius:10px;overflow:hidden;flex-shrink:0}
+.vendor-bar{height:100%;border-radius:10px;background:var(--blue)}
+.vendor-val{font-size:13px;font-weight:700;color:var(--green);min-width:80px;text-align:right}
+
+/* ── Fullscreen ── */
+.fs-btn{width:32px;height:32px;border-radius:8px;background:var(--card2);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;color:var(--text2)}
+.fs-btn:hover{background:var(--card);color:var(--text)}
+
+/* ── Table alternating rows ── */
+tbody tr:nth-child(even) td{background:rgba(255,255,255,.015)}
+
+/* ── Alert banner ── */
+.roi-alert{background:var(--red-dim);border:1px solid rgba(239,68,68,.3);border-radius:10px;padding:.75rem 1rem;font-size:13px;color:var(--red);display:flex;align-items:center;gap:8px;margin-bottom:.5rem}
+
+.metric-card:nth-child(1){animation:fadeUp .4s .05s ease both}
+.metric-card:nth-child(2){animation:fadeUp .4s .1s ease both}
+.metric-card:nth-child(3){animation:fadeUp .4s .15s ease both}
+.metric-card:nth-child(4){animation:fadeUp .4s .2s ease both}
+.metric-card:nth-child(5){animation:fadeUp .4s .25s ease both}
+.metric-card:nth-child(6){animation:fadeUp .4s .3s ease both}
+.metric-card:nth-child(7){animation:fadeUp .4s .35s ease both}
+.metric-card:nth-child(8){animation:fadeUp .4s .4s ease both}
+
+@media(max-width:1100px){.metrics-grid{grid-template-columns:repeat(3,1fr)}.charts-grid{grid-template-columns:1fr}.settings-grid{grid-template-columns:1fr}}
+@media(max-width:900px){.metrics-grid{grid-template-columns:repeat(2,1fr)}.metrics-grid-3{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}
+  .main{margin-left:0}.hamburger{display:flex}
+  .page{padding:1rem 1rem 5rem}.topbar{padding:0 1rem}
+  .bottom-nav{display:block}
+  .today-stats{gap:12px}
+}
+@media(max-width:480px){.metrics-grid{grid-template-columns:1fr 1fr}.metric-value{font-size:18px}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M3 12h3l3-8 4 16 3-8h5"/></svg></div>
+      <div class="login-logo-text">ads<span>flow</span></div>
+    </div>
+    <div class="login-title">Bem-vindo de volta</div>
+    <div class="login-sub">Entre com suas credenciais para acessar</div>
+    <div class="login-field"><label>Email</label><input type="email" id="loginEmail" placeholder="seu@email.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <div class="login-field"><label>Senha</label><input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="btn-login" id="btnLogin" onclick="doLogin()">Entrar no dashboard</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M3 12h3l3-8 4 16 3-8h5"/></svg></div>
+    <div class="logo-text">ads<span>flow</span></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-item active" onclick="goTo('resumo',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Resumo</div>
+    <div class="nav-section">Plataformas</div>
+    <div class="nav-item" onclick="goTo('meta',this)"><svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>Meta Ads</div>
+    <div class="nav-section">Análises</div>
+    <div class="nav-item" onclick="goTo('performance',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Performance</div>
+    <div class="nav-item" onclick="goTo('relatorios',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Relatórios</div>
+    <div class="nav-section">Conta</div>
+    <div class="nav-item" onclick="goTo('conta',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Minha conta</div>
+    <div class="nav-item" onclick="goTo('config',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>Configurações</div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="s-user">
+      <div class="avatar" id="sidebarAvatar">?</div>
+      <div style="flex:1;min-width:0">
+        <div class="user-name" id="sidebarEmail">—</div>
+        <div class="user-plan"><button class="logout-btn" onclick="doLogout()">↩ Sair da conta</button></div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" onclick="toggleSidebar()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+      <span class="topbar-title" id="topbarTitle">Dashboard</span>
+      <span class="topbar-sub" id="topbarSub">— Principal</span>
+    </div>
+    <div class="topbar-right">
+      <button class="theme-btn" onclick="toggleTheme()" title="Alternar tema">
+        <svg id="themeIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
+      <div class="topbar-badges">
+        <div class="source-badge"><span class="source-dot loading" id="dotSheets"></span><span id="lblSheets">Sheets</span></div>
+        <div class="source-badge"><span class="source-dot loading" id="dotMeta"></span><span id="lblMeta">Meta Ads</span></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- RESUMO -->
+  <div class="page active" id="page-resumo">
+    <div class="page-header">
+      <div><h1>Resumo</h1><p id="updateTime">Carregando dados...</p></div>
+      <div class="page-header-right">
+        <div class="filter-group"><span class="filter-label">Período</span>
+          <select class="filter-select" id="periodSel" onchange="onPeriodChange()">
+            <option value="1">Hoje</option>
+            <option value="7" selected>Últimos 7 dias</option>
+            <option value="30">Últimos 30 dias</option>
+            <option value="999">Todo período</option>
+            <option value="custom">Personalizado</option>
+          </select>
+        </div>
+        <div class="filter-group" id="dateRangeGroup" style="display:none">
+          <span class="filter-label">Intervalo</span>
+          <div class="date-range" id="dateRangeWrap">
+            <input type="date" id="dateFrom" onchange="applyCustomRange()">
+            <span class="date-sep">→</span>
+            <input type="date" id="dateTo" onchange="applyCustomRange()">
+          </div>
+        </div>
+        <div class="filter-group"><span class="filter-label">Ação</span>
+          <button class="btn-primary" onclick="syncAll()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>Atualizar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hoje vs Ontem -->
+    <div class="today-banner" id="todayBanner">
+      <div class="today-banner-left">
+        <div class="today-dot"></div>
+        <div><div class="today-label">Hoje</div><div class="today-sub" id="todayDate">—</div></div>
+      </div>
+      <div class="today-stats">
+        <div class="today-stat"><div class="today-stat-label">Gasto ADS</div><div class="today-stat-value c-blue" id="todayGasto">R$ 0,00</div></div>
+        <div class="today-stat"><div class="today-stat-label">Lucro</div><div class="today-stat-value" id="todayLucro">R$ 0,00</div></div>
+        <div class="today-stat"><div class="today-stat-label">ROI</div><div class="today-stat-value" id="todayROI">N/A</div></div>
+        <div class="today-stat"><div class="today-stat-label">vs Ontem</div><div id="todayTrend" class="trend neutral">—</div></div>
+      </div>
+    </div>
+
+    <!-- Metas de Lucro -->
+    <div class="section-card" id="goalCard">
+      <div class="section-head" style="margin-bottom:10px">
+        <div class="s-bar" style="background:var(--green);box-shadow:0 0 8px var(--green)"></div>
+        <div class="s-title">Metas de lucro líquido</div>
+        <span style="margin-left:auto;font-size:12px;font-weight:700;color:var(--text2)" id="goalLucroAtual">—</span>
+      </div>
+
+      <!-- Milestones labels -->
+      <div style="position:relative;height:20px;margin:0 0 0">
+        <span style="position:absolute;left:calc(160000/350000*100%);transform:translateX(-50%);font-size:9px;color:var(--text3);font-weight:600;white-space:nowrap">M1</span>
+        <span style="position:absolute;left:calc(200000/350000*100%);transform:translateX(-50%);font-size:9px;color:var(--text3);font-weight:600;white-space:nowrap">M2</span>
+        <span style="position:absolute;left:calc(260000/350000*100%);transform:translateX(-50%);font-size:9px;color:var(--text3);font-weight:600;white-space:nowrap">M3</span>
+        <span style="position:absolute;right:0;font-size:9px;color:var(--yellow);font-weight:700">🏆</span>
+      </div>
+
+      <!-- Single progress bar -->
+      <div class="goal-track" style="margin-top:0">
+        <!-- Milestone ticks -->
+        <div style="position:absolute;left:calc(160000/350000*100%);top:0;width:2px;height:100%;background:rgba(255,255,255,.2);z-index:1"></div>
+        <div style="position:absolute;left:calc(200000/350000*100%);top:0;width:2px;height:100%;background:rgba(255,255,255,.2);z-index:1"></div>
+        <div style="position:absolute;left:calc(260000/350000*100%);top:0;width:2px;height:100%;background:rgba(255,255,255,.2);z-index:1"></div>
+        <div class="goal-fill" id="goalBarMain" style="width:0%;background:linear-gradient(90deg,#22c55e,#3b82f6)"></div>
+      </div>
+
+      <!-- Values below bar -->
+      <div style="display:flex;justify-content:space-between;margin-top:6px;margin-bottom:10px">
+        <span style="font-size:10px;color:var(--text3)">R$ 0</span>
+        <span style="font-size:10px;color:var(--text3);position:absolute;left:calc(160000/350000*100%);transform:translateX(-50%)">160k</span>
+        <span style="font-size:10px;color:var(--text3);position:absolute;left:calc(200000/350000*100%);transform:translateX(-50%)">200k</span>
+        <span style="font-size:10px;color:var(--text3);position:absolute;left:calc(260000/350000*100%);transform:translateX(-50%)">260k</span>
+        <span style="font-size:10px;color:var(--yellow);font-weight:600">350k</span>
+      </div>
+
+      <!-- Status row -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
+        <span style="font-size:12px;color:var(--text3)" id="goalStatus">Carregando...</span>
+        <span style="font-size:18px;font-weight:800;letter-spacing:-.5px" id="goalPctMain">0%</span>
+      </div>
+    </div>
+
+    <!-- Projeção do mês -->
+    <div class="proj-card" id="projCard">
+      <div class="proj-left">
+        <div class="proj-label">📈 Projeção do mês</div>
+        <div class="proj-value" id="projVal">—</div>
+        <div class="proj-sub" id="projSub">baseado na média diária atual</div>
+      </div>
+      <div class="proj-right">
+        <div class="proj-meta" id="projDiasRestantes">—</div>
+        <div class="proj-meta" id="projMedia">—</div>
+      </div>
+    </div>
+
+    <div class="metrics-grid">
+      <div class="metric-card"><div class="metric-icon ic-blue"><svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div class="metric-label">Gastos com anúncios <span class="trend-badge flat" id="trendGasto"></span></div><div class="metric-value c-blue" id="mGasto">R$ 0,00</div><div class="metric-sub" id="mDias">0 dias registrados</div></div>
+      <div class="metric-card"><div class="metric-icon ic-green"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div><div class="metric-label">Lucro líquido <span class="trend-badge flat" id="trendLucro"></span></div><div class="metric-value" id="mLucro">R$ 0,00</div><div class="metric-sub" id="mLucroSub">no período selecionado</div></div>
+      <div class="metric-card"><div class="metric-icon ic-purple"><svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></div><div class="metric-label">ROI <span class="trend-badge flat" id="trendROI"></span></div><div class="metric-value" id="mROI">N/A</div><div class="metric-sub">lucro ÷ investimento</div></div>
+      <div class="metric-card"><div class="metric-icon ic-blue"><svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="metric-label">ROAS <span class="trend-badge flat" id="trendROAS"></span></div><div class="metric-value" id="mROAS">N/A</div><div class="metric-sub">retorno por R$ 1 investido</div></div>
+      <div class="metric-card"><div class="metric-icon ic-green"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><div class="metric-label">Melhor dia</div><div class="metric-value c-green" id="mMelhor">—</div><div class="metric-sub" id="mMelhorSub">—</div></div>
+      <div class="metric-card"><div class="metric-icon ic-blue"><svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div><div class="metric-label">Média diária</div><div class="metric-value" id="mMedia">R$ 0,00</div><div class="metric-sub">lucro médio por dia</div></div>
+      <div class="metric-card"><div class="metric-icon ic-green"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div class="metric-label">Margem</div><div class="metric-value" id="mMargem">N/A</div><div class="metric-sub">lucro ÷ receita total</div></div>
+      <div class="metric-card"><div class="metric-icon ic-red"><svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg></div><div class="metric-label">Pior dia</div><div class="metric-value c-red" id="mPior">—</div><div class="metric-sub" id="mPiorSub">—</div></div>
+    </div>
+
+    <!-- Ranking de Vendedores -->
+    <div class="section-card" id="vendorCard">
+      <div class="section-head"><div class="s-bar" style="background:var(--yellow);box-shadow:0 0 8px var(--yellow)"></div><div class="s-title">Ranking de vendedores</div><span style="margin-left:auto;font-size:11px;color:var(--text3)" id="vendorPeriod">—</span></div>
+      <div class="vendor-list" id="vendorList"><div class="empty" style="padding:1rem">Carregando...</div></div>
+    </div>
+
+    <div class="section-card">
+      <div class="chart-header">
+        <div><div class="section-head" style="margin-bottom:4px"><div class="s-bar"></div><div class="s-title">Evolução diária</div></div>
+          <div class="legend"><span><span class="leg-sq" style="background:rgba(59,130,246,.7)"></span>ADS</span><span><span class="leg-sq" style="background:rgba(34,197,94,.7)"></span>Lucro</span></div>
+        </div>
+        <div class="period-tabs">
+          <button class="ptab on" onclick="setChartPeriod(7,this)">7d</button>
+          <button class="ptab" onclick="setChartPeriod(14,this)">14d</button>
+          <button class="ptab" onclick="setChartPeriod(30,this)">30d</button>
+          <button class="ptab" onclick="setChartPeriod(999,this)">Tudo</button>
+        </div>
+      </div>
+      <div style="position:relative;width:100%;height:220px;margin-top:12px"><canvas id="chart"></canvas></div>
+    </div>
+
+    <div class="section-card" style="padding:0;overflow:hidden">
+      <div class="table-header"><span class="table-title">Histórico de registros</span><span class="table-count" id="tableCount">0 dias</span></div>
+      <div id="tableWrap" class="table-wrap"><div class="empty">Carregando...</div></div>
+    </div>
+  </div>
+
+  <!-- META ADS -->
+  <div class="page" id="page-meta">
+    <div class="page-header"><div><h1>Meta Ads</h1><p>Gasto diário de anúncios</p></div><div class="page-header-right"><button class="btn-primary" onclick="syncAll()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>Sincronizar</button></div></div>
+    <div class="metrics-grid-3">
+      <div class="metric-card"><div class="metric-icon ic-blue"><svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div class="metric-label">Total gasto (90d)</div><div class="metric-value c-blue" id="metaTotalGasto">R$ 0,00</div><div class="metric-sub" id="metaDias">0 dias com gasto</div></div>
+      <div class="metric-card"><div class="metric-icon ic-green"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div><div class="metric-label">Média diária</div><div class="metric-value" id="metaMedia">R$ 0,00</div><div class="metric-sub">por dia com anúncio ativo</div></div>
+      <div class="metric-card"><div class="metric-icon ic-yellow"><svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><div class="metric-label">Maior gasto num dia</div><div class="metric-value c-yellow" id="metaMaior">—</div><div class="metric-sub" id="metaMaiorSub">—</div></div>
+    </div>
+    <div class="section-card"><div class="section-head"><div class="s-bar"></div><div class="s-title">Gasto diário</div></div><div style="position:relative;width:100%;height:220px"><canvas id="chartMeta"></canvas></div></div>
+    <div class="section-card" style="padding:0;overflow:hidden"><div class="table-header"><span class="table-title">Gastos por dia</span><span class="table-count" id="metaTableCount">0</span></div><div id="metaTableWrap" class="table-wrap"><div class="empty">Sincronize para carregar.</div></div></div>
+  </div>
+
+  <!-- PERFORMANCE -->
+  <div class="page" id="page-performance">
+    <div class="page-header"><div><h1>Performance</h1><p>Análise de ROI, ROAS e evolução mensal</p></div></div>
+    <div class="charts-grid">
+      <div class="section-card"><div class="section-head"><div class="s-bar" style="background:var(--purple);box-shadow:0 0 8px var(--purple)"></div><div class="s-title">ROI ao longo do tempo</div></div><div style="position:relative;width:100%;height:200px"><canvas id="chartROI"></canvas></div></div>
+      <div class="section-card"><div class="section-head"><div class="s-bar"></div><div class="s-title">ROAS ao longo do tempo</div></div><div style="position:relative;width:100%;height:200px"><canvas id="chartROAS"></canvas></div></div>
+    </div>
+    <div class="section-card"><div class="section-head"><div class="s-bar" style="background:var(--green);box-shadow:0 0 8px var(--green)"></div><div class="s-title">Comparativo mensal</div></div><div style="position:relative;width:100%;height:220px"><canvas id="chartMensal"></canvas></div></div>
+    <div class="metrics-grid-3">
+      <div class="metric-card"><div class="metric-label">Melhor ROI registrado</div><div class="metric-value c-green" id="perfBestROI">—</div><div class="metric-sub" id="perfBestROISub">—</div></div>
+      <div class="metric-card"><div class="metric-label">Melhor ROAS registrado</div><div class="metric-value c-blue" id="perfBestROAS">—</div><div class="metric-sub" id="perfBestROASSub">—</div></div>
+      <div class="metric-card"><div class="metric-label">Dias lucrativos</div><div class="metric-value c-green" id="perfDiasPos">0</div><div class="metric-sub" id="perfDiasPosP">de 0 dias</div></div>
+    </div>
+  </div>
+
+  <!-- RELATÓRIOS -->
+  <div class="page" id="page-relatorios">
+    <div class="page-header"><div><h1>Relatórios</h1><p>Exporte seus dados para Excel</p></div></div>
+    <div class="section-card">
+      <div class="section-head"><div class="s-bar"></div><div class="s-title">Exportar dados</div></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1rem">
+        <div class="filter-group"><span class="filter-label">Período</span><select class="filter-select" id="relPeriod" onchange="renderRelatoriosPage()"><option value="7">Últimos 7 dias</option><option value="30" selected>Últimos 30 dias</option><option value="999">Todo período</option></select></div>
+        <div class="filter-group"><span class="filter-label">Ação</span><button class="btn-primary" onclick="exportExcel()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Exportar Excel</button></div>
+      </div>
+      <div class="alert-box info"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>O arquivo Excel contém data, gasto em ADS, lucro, ROI e ROAS de cada dia.</div>
+    </div>
+    <div class="section-card" style="padding:0;overflow:hidden"><div class="table-header"><span class="table-title">Prévia dos dados</span><span class="table-count" id="relTableCount">0 dias</span></div><div id="relTableWrap" class="table-wrap"><div class="empty">Carregando...</div></div></div>
+  </div>
+
+  <!-- MINHA CONTA -->
+  <div class="page" id="page-conta">
+    <div class="page-header"><div><h1>Minha conta</h1><p>Credenciais e configurações de conexão</p></div></div>
+    <div class="section-card">
+      <div class="section-head"><div class="s-bar" style="background:#1877f2;box-shadow:0 0 8px #1877f2"></div><div class="s-title">Meta Ads — Token de acesso</div></div>
+      <div id="tokenAlert" style="margin-bottom:1rem"></div>
+      <div class="settings-grid">
+        <div class="settings-field"><label>Access Token</label><input type="password" id="cfgToken" placeholder="EAAxxxxxx..."></div>
+        <div class="settings-field"><label>Ad Account ID</label><input type="text" id="cfgAccount" placeholder="act_123456789"></div>
+      </div>
+      <div style="margin-top:1rem;display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn-primary" onclick="saveCredentials()">Salvar e sincronizar</button>
+        <button class="btn-secondary" onclick="testToken()">Testar conexão</button>
+      </div>
+    </div>
+    <div class="section-card">
+      <div class="section-head"><div class="s-bar" style="background:var(--green);box-shadow:0 0 8px var(--green)"></div><div class="s-title">Google Sheets — Configuração</div></div>
+      <div class="settings-grid">
+        <div class="settings-field"><label>Coluna da Data (letra)</label><input type="text" id="cfgColData" value="A" maxlength="2"></div>
+        <div class="settings-field"><label>Coluna do Lucro (letra)</label><input type="text" id="cfgColLucro" value="J" maxlength="2"></div>
+      </div>
+      <div style="margin-top:1rem"><button class="btn-primary" onclick="saveSheetConfig()">Salvar configuração</button></div>
+    </div>
+  </div>
+
+  <!-- CONFIGURAÇÕES -->
+  <div class="page" id="page-config">
+    <div class="page-header"><div><h1>Configurações</h1><p>Personalize sua experiência</p></div></div>
+    <div class="section-card">
+      <div class="section-head"><div class="s-bar"></div><div class="s-title">Preferências</div></div>
+      <div class="toggle-row"><div><div class="toggle-label">Sincronização automática</div><div class="toggle-sub">Atualiza dados ao abrir o site</div></div><label class="toggle"><input type="checkbox" id="togAutoSync" checked onchange="savePref()"><span class="toggle-slider"></span></label></div>
+      <div class="toggle-row"><div><div class="toggle-label">Mostrar tags de origem</div><div class="toggle-sub">Exibe "Sheets" e "Meta" na tabela</div></div><label class="toggle"><input type="checkbox" id="togTags" checked onchange="savePref()"><span class="toggle-slider"></span></label></div>
+      <div class="toggle-row"><div><div class="toggle-label">Alerta de token expirando</div><div class="toggle-sub">Notifica quando o token Meta estiver próximo de expirar</div></div><label class="toggle"><input type="checkbox" id="togTokenAlert" checked onchange="savePref()"><span class="toggle-slider"></span></label></div>
+    </div>
+    <div class="section-card">
+      <div class="section-head"><div class="s-bar"></div><div class="s-title">Sobre</div></div>
+      <div style="font-size:13px;color:var(--text2);line-height:2">
+        <div><strong style="color:var(--text)">adsflow</strong> — Dashboard de performance de anúncios</div>
+        <div>Fontes de dados: Google Sheets + Meta Ads API</div>
+        <div>Hospedagem: Vercel • Banco: Supabase</div>
+        <div style="margin-top:.5rem;font-size:11px;color:var(--text3)">⚠️ Token Meta expira em ~60 dias. Acesse Minha conta para renovar.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV (mobile) -->
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <div class="bottom-nav-item active" onclick="goTo('resumo',this)" id="bnav-resumo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span>Resumo</span></div>
+    <div class="bottom-nav-item" onclick="goTo('meta',this)" id="bnav-meta"><svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg><span>Meta</span></div>
+    <div class="bottom-nav-item" onclick="goTo('performance',this)" id="bnav-performance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>Performance</span></div>
+    <div class="bottom-nav-item" onclick="goTo('relatorios',this)" id="bnav-relatorios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>Relatórios</span></div>
+    <div class="bottom-nav-item" onclick="goTo('conta',this)" id="bnav-conta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg><span>Conta</span></div>
+  </div>
+</nav>
+
+<div class="toast" id="toast"><span id="toastMsg"></span><div class="toast-bar" id="toastBar" style="width:100%"></div></div>
+
+<script>
+// ── Supabase ──
+const SUPA_URL='https://oxeimicsrrptaoxuermo.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im94ZWltaWNzcnJwdGFveHVlcm1vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNjU2MjMsImV4cCI6MjA5MDg0MTYyM30.5YqGX278N6LHbEzCT_l6kZjZNva9iFUbB7HubK95uz0';
+const supa=window.supabase.createClient(SUPA_URL,SUPA_KEY);
+
+// ── Config ──
+let CFG={
+  metaToken:'EAAhZA0V5MmTkBRJI2ZCjnVFg1q7Jl8Edzb7jVvEcbafXS7xQ7dsZCyonOY4VjtxO997xhw8YHT7YZA1gnZBzZAAB8Im6YOAwIiaoVCbDKXUYuM8axarl0W7m6RZCZCjX3izKsMqqBk9FtZAOznWCpIBxhKFx7W6ut2elgaz0AuTYefzdGZAhgZAlZCPGdJNsBy4rjqmoLJqvwGFeszlnBG4s',
+  metaAccount:'act_1455012942253844',
+  colData:0,colLucro:9,
+  sheetsURL:'https://docs.google.com/spreadsheets/d/e/2PACX-1vQjIisa1V3kcKwfVAJrtMc243DHCHDj0P22zJICXb1dcjqjkCgn97zpNza7SY0k4nOYOwW2SuGNHzS6/pub?gid=761693994&single=true&output=csv',
+};
+const saved=localStorage.getItem('af-cfg');
+if(saved){try{CFG={...CFG,...JSON.parse(saved)};}catch(e){}}
+
+let days={},vendors={},period=7,chartPeriod=7,charts={};
+
+
+// ── Utils ──
+const todayISO=()=>new Date().toISOString().slice(0,10);
+const yesterdayISO=()=>{const d=new Date();d.setDate(d.getDate()-1);return d.toISOString().slice(0,10);};
+const fmtISO=iso=>{const[y,m,d]=iso.split('-');return d+'/'+m+'/'+y;};
+const fmtBRL=v=>'R$ '+Math.abs(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const nowStr=()=>new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+const colIdx=l=>l.toUpperCase().charCodeAt(0)-65;
+
+// ── Toast ──
+let toastTimer;
+function toast(msg,type=''){
+  clearTimeout(toastTimer);
+  const t=document.getElementById('toast');
+  const bar=document.getElementById('toastBar');
+  document.getElementById('toastMsg').textContent=msg;
+  t.className='toast show'+(type?' '+type:'');
+  bar.style.transition='none';bar.style.width='100%';
+  setTimeout(()=>{bar.style.transition='width 3s linear';bar.style.width='0%';},50);
+  toastTimer=setTimeout(()=>t.className='toast',3500);
+}
+
+// ── Theme ──
+function toggleTheme(){
+  const html=document.documentElement;
+  const isDark=html.dataset.theme==='dark';
+  html.dataset.theme=isDark?'light':'dark';
+  localStorage.setItem('af-theme',html.dataset.theme);
+  const icon=document.getElementById('themeIcon');
+  if(isDark){icon.innerHTML='<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';}
+  else{icon.innerHTML='<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';}
+}
+
+// ── Navigation ──
+function goTo(page,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item,.bottom-nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  if(el)el.classList.add('active');
+  // also highlight bottom nav
+  const bn=document.getElementById('bnav-'+page);if(bn)bn.classList.add('active');
+  const titles={resumo:['Dashboard','— Principal'],meta:['Meta Ads','— Gastos'],performance:['Performance','— Análise'],relatorios:['Relatórios','— Exportação'],conta:['Minha conta','— Credenciais'],config:['Configurações','— Preferências']};
+  const t=titles[page]||['Dashboard',''];
+  document.getElementById('topbarTitle').textContent=t[0];
+  document.getElementById('topbarSub').textContent=t[1];
+  closeSidebar();
+  if(page==='meta')renderMetaPage();
+  if(page==='performance')renderPerformancePage();
+  if(page==='relatorios')renderRelatoriosPage();
+  if(page==='conta')renderContaPage();
+  if(page==='config')loadPrefs();
+}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show');}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('show');}
+
+// ── Auth ──
+async function doLogin(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const pass=document.getElementById('loginPass').value;
+  const btn=document.getElementById('btnLogin');
+  const err=document.getElementById('loginError');
+  if(!email||!pass){err.textContent='Preencha email e senha.';return;}
+  btn.disabled=true;btn.textContent='Entrando...';err.textContent='';
+  const{data,error}=await supa.auth.signInWithPassword({email,password:pass});
+  if(error){err.textContent='Email ou senha incorretos.';btn.disabled=false;btn.textContent='Entrar no dashboard';return;}
+  showApp(data.user.email);
+}
+async function doLogout(){
+  await supa.auth.signOut();
+  document.getElementById('loginOverlay').classList.remove('hide');
+  document.getElementById('loginOverlay').style.display='';
+  document.getElementById('loginEmail').value='';
+  document.getElementById('loginPass').value='';
+  document.getElementById('loginError').textContent='';
+  document.getElementById('btnLogin').disabled=false;
+  document.getElementById('btnLogin').textContent='Entrar no dashboard';
+  days={};
+}
+function showApp(email){
+  const ov=document.getElementById('loginOverlay');
+  ov.classList.add('hide');setTimeout(()=>ov.style.display='none',400);
+  const name=email.split('@')[0];
+  document.getElementById('sidebarEmail').textContent=email;
+  document.getElementById('sidebarAvatar').textContent=name[0].toUpperCase();
+  syncAll();
+}
+
+// ── Parse ──
+function parseDateBR(str){
+  if(!str)return null;str=str.trim().replace(/"/g,'');
+  const m1=str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);if(m1)return `${m1[3]}-${m1[2].padStart(2,'0')}-${m1[1].padStart(2,'0')}`;
+  const m2=str.match(/^(\d{4})-(\d{2})-(\d{2})$/);if(m2)return str;
+  const m3=str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2})$/);if(m3)return `20${m3[3]}-${m3[2].padStart(2,'0')}-${m3[1].padStart(2,'0')}`;
+  return null;
+}
+function parseNum(str){
+  if(!str)return 0;str=str.toString().trim().replace(/"/g,'').replace('R$','').replace(/\s/g,'');
+  if(str.includes(','))str=str.replace(/\./g,'').replace(',','.');
+  return parseFloat(str)||0;
+}
+function parseCSV(text){
+  const rows=[];
+  text.split('\n').forEach(line=>{
+    const cols=[];let cur='',inQ=false;
+    for(let i=0;i<line.length;i++){if(line[i]==='"'){inQ=!inQ;}else if(line[i]===','&&!inQ){cols.push(cur);cur='';}else cur+=line[i];}
+    cols.push(cur);rows.push(cols);
+  });
+  return rows;
+}
+
+// ── Sync ──
+async function syncSheets(){
+  const dot=document.getElementById('dotSheets');
+  const lbl=document.getElementById('lblSheets');
+  dot.className='source-dot loading';lbl.textContent='Sheets...';
+  let text=null;
+  try{
+    const r=await fetch('/api/sheets');
+    const j=await r.json();
+    if(j.error)throw new Error(j.error);
+    text=j.csv;
+  }catch(e){dot.className='source-dot err';lbl.textContent='Sheets ✗';toast('Erro ao carregar planilha','err');return;}
+  if(!text||text.length<50){dot.className='source-dot err';lbl.textContent='Sheets ✗';toast('Erro ao carregar planilha','err');return;}
+  const rows=parseCSV(text);let count=0;
+  if(rows.length<2){dot.className='source-dot err';lbl.textContent='Sheets ✗';return;}
+  // Auto-detect columns by header name
+  const header=rows[0].map(h=>h.trim().replace(/"/g,'').toLowerCase());
+  let idxData=CFG.colData,idxLucro=CFG.colLucro;
+  header.forEach((h,i)=>{
+    if(h.includes('lucro'))idxLucro=i;
+    if(h==='abril'||h==='data'||h==='date')idxData=i;
+  });
+  for(let i=1;i<rows.length;i++){
+    const cols=rows[i];if(!cols[idxData])continue;
+    const iso=parseDateBR(cols[idxData]);if(!iso)continue;
+    const lucro=parseNum(cols[idxLucro]);
+    if(!lucro&&lucro!==0)continue;
+    if(!days[iso])days[iso]={gasto:0,lucro:0,srcG:'',srcL:''};
+    days[iso].lucro+=lucro;days[iso].srcL='sheets';count++;
+    // Track vendor
+    const vendedor=(cols[5]||'').trim().replace(/"/g,'');
+    if(vendedor&&lucro>0){
+      if(!vendors[vendedor])vendors[vendedor]=0;
+      vendors[vendedor]+=lucro;
+    }
+  }
+  dot.className='source-dot on';lbl.textContent='Sheets ✓';
+  toast(`✓ ${count} linhas da planilha`,'ok');
+}
+
+async function syncMeta(){
+  const dot=document.getElementById('dotMeta');
+  const lbl=document.getElementById('lblMeta');
+  dot.className='source-dot loading';lbl.textContent='Meta...';
+  try{
+    const res=await fetch('/api/meta');
+    const data=await res.json();
+    if(data.error)throw new Error(data.error);
+    let count=0;
+    (data.data||[]).forEach(item=>{
+      const gasto=parseFloat(item.spend)||0;if(!gasto)return;
+      const iso=item.date_start;
+      // Só adiciona gasto do Meta se o dia JÁ existe na planilha
+      if(!days[iso])return;
+      days[iso].gasto=gasto;days[iso].srcG='meta';count++;
+    });
+    dot.className='source-dot on';lbl.textContent='Meta ✓';
+    toast(`✓ ${count} dias do Meta Ads`,'ok');
+  }catch(e){
+    dot.className='source-dot err';lbl.textContent='Meta ✗';
+    toast('Erro ao carregar Meta Ads: '+e.message,'err');
+  }
+}
+
+async function syncAll(){
+  days={};vendors={};
+  document.getElementById('updateTime').textContent='Atualizando...';
+  await syncSheets();await syncMeta();
+  document.getElementById('updateTime').textContent='Atualizado às '+nowStr();
+  renderResumo();
+  renderGoals();
+}
+
+// ── Period ──
+function onPeriodChange(){
+  const val=document.getElementById('periodSel').value;
+  const grp=document.getElementById('dateRangeGroup');
+  if(val==='custom'){
+    period='custom';
+    grp.style.display='flex';
+    // Set default range: current month
+    const now=new Date();
+    const y=now.getFullYear(),m=String(now.getMonth()+1).padStart(2,'0');
+    document.getElementById('dateFrom').value=`${y}-${m}-01`;
+    document.getElementById('dateTo').value=now.toISOString().slice(0,10);
+    customFrom=document.getElementById('dateFrom').value;
+    customTo=document.getElementById('dateTo').value;
+  } else {
+    period=parseInt(val);
+    grp.style.display='none';
+    document.getElementById('dateRangeWrap').classList.remove('date-range-active');
+    customFrom=null;customTo=null;
+  }
+  renderResumo();
+}
+function setChartPeriod(p,btn){chartPeriod=p;document.querySelectorAll('.ptab').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderMainChart(filteredFor(chartPeriod));}
+let customFrom=null,customTo=null;
+
+function filteredFor(p){
+  const s=Object.entries(days).sort((a,b)=>a[0].localeCompare(b[0]));
+  if(p==='custom'&&customFrom&&customTo){
+    return s.filter(([iso])=>iso>=customFrom&&iso<=customTo);
+  }
+  if(!p||p>=999)return s;
+  const cut=new Date();cut.setDate(cut.getDate()-p);
+  return s.filter(([iso])=>new Date(iso)>=cut);
+}
+
+function applyCustomRange(){
+  customFrom=document.getElementById('dateFrom').value;
+  customTo=document.getElementById('dateTo').value;
+  if(customFrom&&customTo){
+    document.getElementById('dateRangeWrap').classList.add('date-range-active');
+    renderResumo();
+  }
+}
+
+// ── Animated counter ──
+function animateValue(el,target,prefix='',suffix='',duration=350){
+  const start=0,startTime=performance.now();
+  function update(now){
+    const elapsed=now-startTime;
+    const progress=Math.min(elapsed/duration,1);
+    const eased=1-Math.pow(1-progress,3);
+    const current=start+(target-start)*eased;
+    el.textContent=prefix+Math.abs(current).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+suffix;
+    if(progress<1)requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+// ── Fullscreen ──
+function toggleFullscreen(){
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen();
+    document.getElementById('fsBtn').innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>';
+  } else {
+    document.exitFullscreen();
+    document.getElementById('fsBtn').innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>';
+  }
+}
+
+// ── Trend badge ──
+function setTrend(elId,curr,prev){
+  const el=document.getElementById(elId);if(!el)return;
+  if(!prev||prev===0){el.className='trend-badge flat';el.textContent='';return;}
+  const diff=((curr-prev)/Math.abs(prev))*100;
+  const up=diff>=0;
+  el.className='trend-badge '+(up?'up':'down');
+  el.textContent=(up?'↑ ':' ↓')+Math.abs(diff).toFixed(1)+'%';
+}
+
+// ── Projeção do mês ──
+function renderProjecao(fd){
+  const now=new Date();
+  const ym=now.toISOString().slice(0,7);
+  const diasNoMes=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+  const diaAtual=now.getDate();
+  const diasRestantes=diasNoMes-diaAtual;
+  const lucroMes=fd.filter(([iso])=>iso.startsWith(ym)).reduce((a,[,d])=>a+d.lucro,0);
+  const diasComDado=fd.filter(([iso])=>iso.startsWith(ym)).length;
+  if(!diasComDado){document.getElementById('projVal').textContent='—';document.getElementById('projSub').textContent='sem dados este mês';return;}
+  const mediaDiaria=lucroMes/diasComDado;
+  const projecao=lucroMes+(mediaDiaria*diasRestantes);
+  document.getElementById('projVal').textContent=fmtBRL(projecao);
+  document.getElementById('projSub').textContent=`baseado em ${fmtBRL(mediaDiaria)}/dia`;
+  document.getElementById('projDiasRestantes').textContent=`${diasRestantes} dias restantes`;
+  document.getElementById('projMedia').textContent=`Acumulado: ${fmtBRL(lucroMes)}`;
+  // Color based on best goal
+  const METAS=[160000,200000,260000,350000];
+  const proxima=METAS.find(m=>projecao<m);
+  const el=document.getElementById('projVal');
+  el.style.color=!proxima?'var(--yellow)':projecao>=METAS[0]?'var(--green)':'var(--purple)';
+}
+
+// ── Vendedores ──
+function renderVendors(fd){
+  const periodVendors={};
+  const header=fd.length+' dias';
+  document.getElementById('vendorPeriod').textContent=header;
+  // Rebuild vendors for current period
+  fd.forEach(([iso,d])=>{
+    // We need per-day vendor data - use global vendors (all time for now)
+  });
+  const list=Object.entries(vendors).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  if(!list.length){document.getElementById('vendorList').innerHTML='<div class="empty" style="padding:1rem">Sem dados de vendedor.</div>';return;}
+  const max=list[0][1];
+  const rankClass=['rank-1','rank-2','rank-3'];
+  const medals=['🥇','🥈','🥉'];
+  const html=list.map(([name,val],i)=>`
+    <div class="vendor-row">
+      <div class="vendor-rank ${rankClass[i]||'rank-n'}">${medals[i]||i+1}</div>
+      <div class="vendor-name">${name}</div>
+      <div class="vendor-bar-wrap"><div class="vendor-bar" style="width:${(val/max*100).toFixed(0)}%;background:${i===0?'var(--yellow)':i===1?'#94a3b8':i===2?'#b47850':'var(--blue)'}"></div></div>
+      <div class="vendor-val">${fmtBRL(val)}</div>
+    </div>
+  `).join('');
+  document.getElementById('vendorList').innerHTML=html;
+}
+
+// ── Goal ──
+function renderGoals(){
+  const SUPER=350000;
+  const METAS=[160000,200000,260000,350000];
+  const LABELS=['Meta 1','Meta 2','Meta 3','🏆 Super Meta'];
+  const now=new Date();const ym=now.toISOString().slice(0,7);
+  const lucroMes=Object.entries(days).filter(([iso])=>iso.startsWith(ym)).reduce((a,[,d])=>a+d.lucro,0);
+  document.getElementById('goalLucroAtual').textContent=fmtBRL(lucroMes);
+  const pctTotal=Math.min((lucroMes/SUPER)*100,100);
+  const pctEl=document.getElementById('goalPctMain');
+  pctEl.textContent=pctTotal.toFixed(1)+'%';
+  pctEl.style.color=pctTotal>=100?'var(--yellow)':lucroMes>0?'var(--green)':'var(--text3)';
+  const bar=document.getElementById('goalBarMain');
+  bar.style.width=pctTotal.toFixed(2)+'%';
+    setTimeout(()=>{
+    if(pctTotal>=100)bar.style.background='linear-gradient(90deg,#22c55e,#f59e0b)';
+    else if(pctTotal>74)bar.style.background='linear-gradient(90deg,#22c55e,#3b82f6,#a855f7)';
+    else if(pctTotal>57)bar.style.background='linear-gradient(90deg,#22c55e,#3b82f6)';
+    else bar.style.background='var(--green)';
+  },100);
+  const proxima=METAS.find(m=>lucroMes<m);
+  let statusMsg='';
+  if(lucroMes<=0){statusMsg='Aguardando dados do mês...';}
+  else if(!proxima){statusMsg='🏆 Parabéns! Todas as metas atingidas!';}
+  else{
+    const falta=proxima-lucroMes;
+    const idx=METAS.indexOf(proxima);
+    const mAnt=idx>0?METAS[idx-1]:0;
+    const pctMeta=((lucroMes-mAnt)/(proxima-mAnt)*100).toFixed(0);
+    statusMsg=`${pctMeta}% para ${LABELS[idx]} — faltam ${fmtBRL(falta)}`;
+  }
+  document.getElementById('goalStatus').textContent=statusMsg;
+}
+
+// ── Resumo ──
+function renderResumo(){
+  const fd=filteredFor(period);
+  const tG=fd.reduce((a,[,d])=>a+d.gasto,0);
+  const tL=fd.reduce((a,[,d])=>a+d.lucro,0);
+  const roi=tG>0?(tL/tG)*100:null;
+  const roas=tG>0?(tL+tG)/tG:null;
+  const n=fd.length;
+  const all=Object.entries(days);
+  const best=all.length?all.reduce((a,b)=>b[1].lucro>a[1].lucro?b:a):null;
+  const worst=all.length?all.reduce((a,b)=>b[1].lucro<a[1].lucro?b:a):null;
+  const media=n?tL/n:0;
+  const margem=(tL+tG)>0?(tL/(tL+tG))*100:null;
+
+  // Today vs Yesterday
+  const today=days[todayISO()]||{gasto:0,lucro:0};
+  const yesterday=days[yesterdayISO()]||{gasto:0,lucro:0};
+  document.getElementById('todayDate').textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('todayGasto').textContent=fmtBRL(today.gasto);
+  const todayLucroEl=document.getElementById('todayLucro');
+  todayLucroEl.textContent=fmtBRL(today.lucro);
+  todayLucroEl.className='today-stat-value '+(today.lucro>0?'c-green':today.lucro<0?'c-red':'');
+  const todayROI=today.gasto>0?((today.lucro/today.gasto)*100).toFixed(1)+'%':'N/A';
+  document.getElementById('todayROI').textContent=todayROI;
+  // Trend vs yesterday
+  const trendEl=document.getElementById('todayTrend');
+  if(yesterday.lucro!==0){
+    const diff=((today.lucro-yesterday.lucro)/Math.abs(yesterday.lucro)*100).toFixed(1);
+    const up=parseFloat(diff)>=0;
+    trendEl.className='trend '+(up?'up':'down');
+    trendEl.textContent=(up?'↑ +':'↓ ')+diff+'%';
+  }else{trendEl.className='trend neutral';trendEl.textContent='—';}
+
+  // Metrics
+  document.getElementById('mGasto').textContent=fmtBRL(tG);
+  document.getElementById('mDias').textContent=n+(n===1?' dia':' dias')+' registrados';
+  const mL=document.getElementById('mLucro');mL.textContent=fmtBRL(tL);mL.className='metric-value '+(tL>0?'c-green':tL<0?'c-red':'');
+  const mR=document.getElementById('mROI');mR.textContent=roi!==null?(roi>=0?'+':'')+roi.toFixed(1)+'%':'N/A';mR.className='metric-value '+(roi>0?'c-green':roi<0?'c-red':'');
+  const mROAS=document.getElementById('mROAS');mROAS.textContent=roas!==null?roas.toFixed(2)+'x':'N/A';mROAS.className='metric-value '+(roas>=2?'c-green':roas>=1?'':'c-red');
+  if(best){document.getElementById('mMelhor').textContent=fmtBRL(best[1].lucro);document.getElementById('mMelhorSub').textContent=fmtISO(best[0]);}
+  if(worst){document.getElementById('mPior').textContent=fmtBRL(worst[1].lucro);document.getElementById('mPiorSub').textContent=fmtISO(worst[0]);}
+  const mM=document.getElementById('mMedia');mM.textContent=fmtBRL(media);mM.className='metric-value '+(media>0?'c-green':media<0?'c-red':'');
+  const mMarg=document.getElementById('mMargem');mMarg.textContent=margem!==null?margem.toFixed(1)+'%':'N/A';mMarg.className='metric-value '+(margem>0?'c-green':margem<0?'c-red':'');
+  document.getElementById('tableCount').textContent=Object.keys(days).length+' dias';
+
+  renderGoals();
+  renderProjecao(fd);
+  renderVendors(fd);
+
+  // Trend badges: compare current period vs previous same period
+  const prevFd=filteredFor(period==='custom'?999:period*2).slice(0,fd.length);
+  const prevG=prevFd.reduce((a,[,d])=>a+d.gasto,0);
+  const prevL=prevFd.reduce((a,[,d])=>a+d.lucro,0);
+  const prevROI=prevG>0?(prevL/prevG)*100:null;
+  const prevROAS=prevG>0?(prevL+prevG)/prevG:null;
+  setTrend('trendGasto',tG,prevG);
+  setTrend('trendLucro',tL,prevL);
+  if(roi!==null&&prevROI!==null)setTrend('trendROI',roi,prevROI);
+  if(roas!==null&&prevROAS!==null)setTrend('trendROAS',roas,prevROAS);
+
+  // ROI alert
+  const existingAlert=document.getElementById('roiAlert');if(existingAlert)existingAlert.remove();
+  if(roi!==null&&roi<20&&tG>0){
+    const alertDiv=document.createElement('div');alertDiv.id='roiAlert';
+    alertDiv.className='roi-alert';
+    alertDiv.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>⚠️ ROI abaixo de 20% — revise seus anúncios!';
+    document.getElementById('projCard').before(alertDiv);
+  }
+
+  // Auto switch chart type: line for >30 days
+  renderMainChart(filteredFor(chartPeriod));
+  renderTable();
+}
+
+function mkChart(id,type,data,options){
+  if(charts[id])charts[id].destroy();
+  const c=document.getElementById(id);if(!c)return;
+  charts[id]=new Chart(c,{type,data,options});
+}
+
+const chartDefaults={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#141923',borderColor:'#1e2535',borderWidth:1,padding:10}},scales:{x:{ticks:{color:'#3d4f63',font:{size:10},maxRotation:35},grid:{display:false},border:{color:'rgba(255,255,255,.04)'}},y:{ticks:{color:'#3d4f63',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'},border:{color:'transparent'}}}};
+
+function renderMainChart(fd){
+  const useLine=fd.length>30;
+  const yTick={color:'#3d4f63',font:{size:10},callback:v=>'R$'+(Math.abs(v)>=1000?(v/1000).toFixed(1)+'k':v)};
+  const tooltip={...chartDefaults.plugins.tooltip,callbacks:{label:ctx=>ctx.dataset.label+': '+fmtBRL(ctx.parsed.y)}};
+  if(useLine){
+    mkChart('chart','line',{
+      labels:fd.map(([iso])=>fmtISO(iso)),
+      datasets:[
+        {label:'ADS',data:fd.map(([,d])=>d.gasto),borderColor:'rgba(59,130,246,.8)',backgroundColor:'rgba(59,130,246,.08)',fill:true,tension:.4,pointRadius:2,pointBackgroundColor:'#3b82f6'},
+        {label:'Lucro',data:fd.map(([,d])=>d.lucro),borderColor:'rgba(34,197,94,.8)',backgroundColor:'rgba(34,197,94,.08)',fill:true,tension:.4,pointRadius:2,pointBackgroundColor:'#22c55e'}
+      ]
+    },{...chartDefaults,plugins:{...chartDefaults.plugins,tooltip},scales:{...chartDefaults.scales,y:{...chartDefaults.scales.y,ticks:yTick}}});
+  } else {
+    mkChart('chart','bar',{
+      labels:fd.map(([iso])=>fmtISO(iso)),
+      datasets:[
+        {label:'ADS',data:fd.map(([,d])=>d.gasto),backgroundColor:'rgba(59,130,246,.6)',borderRadius:5,barPercentage:.7},
+        {label:'Lucro',data:fd.map(([,d])=>d.lucro),backgroundColor:fd.map(([,d])=>d.lucro>=0?'rgba(34,197,94,.7)':'rgba(239,68,68,.65)'),borderRadius:5,barPercentage:.7}
+      ]
+    },{...chartDefaults,plugins:{...chartDefaults.plugins,tooltip},scales:{...chartDefaults.scales,y:{...chartDefaults.scales.y,ticks:yTick}}});
+  }
+}
+
+function renderTable(){
+  const showTags=document.getElementById('togTags')?.checked!==false;
+  const wrap=document.getElementById('tableWrap');
+  const sorted=Object.entries(days).sort((a,b)=>b[0].localeCompare(a[0]));
+  if(!sorted.length){wrap.innerHTML='<div class="empty">Nenhum dado carregado.</div>';return;}
+  const rows=sorted.map(([iso,d])=>{
+    const roi=d.gasto>0?(d.lucro/d.gasto)*100:null;
+    const roas=d.gasto>0?(d.lucro+d.gasto)/d.gasto:null;
+    const pos=d.lucro>=0;const isToday=iso===todayISO();
+    const srcL=showTags&&d.srcL==='sheets'?'<span class="src-tag src-sheets">Sheets</span>':'';
+    const srcG=showTags&&d.srcG==='meta'?'<span class="src-tag src-meta">Meta</span>':'';
+    return`<tr>
+      <td style="color:var(--text2);font-size:12px;font-weight:500">${fmtISO(iso)}${isToday?'<span class="today-tag">hoje</span>':''}</td>
+      <td style="color:var(--blue);font-weight:700">${fmtBRL(d.gasto)}${srcG}</td>
+      <td style="color:${pos?'var(--green)':'var(--red)'};font-weight:700">${pos?'':'-'}${fmtBRL(d.lucro)}${srcL}</td>
+      <td>${roi!==null?`<span class="pill ${roi>0?'pill-g':roi<0?'pill-r':'pill-b'}">${roi>=0?'+':''}${roi.toFixed(1)}%</span>`:'—'}</td>
+      <td>${roas!==null?`<span class="pill pill-b">${roas.toFixed(2)}x</span>`:'—'}</td>
+    </tr>`;
+  }).join('');
+  wrap.innerHTML=`<table><thead><tr><th>Data</th><th>Gasto ADS</th><th>Lucro</th><th>ROI</th><th>ROAS</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+// ── Meta page ──
+function renderMetaPage(){
+  const md=Object.entries(days).filter(([,d])=>d.gasto>0).sort((a,b)=>a[0].localeCompare(b[0]));
+  const total=md.reduce((a,[,d])=>a+d.gasto,0);
+  const media=md.length?total/md.length:0;
+  const maior=md.length?md.reduce((a,b)=>b[1].gasto>a[1].gasto?b:a):null;
+  document.getElementById('metaTotalGasto').textContent=fmtBRL(total);
+  document.getElementById('metaDias').textContent=md.length+' dias com gasto';
+  document.getElementById('metaMedia').textContent=fmtBRL(media);
+  if(maior){document.getElementById('metaMaior').textContent=fmtBRL(maior[1].gasto);document.getElementById('metaMaiorSub').textContent=fmtISO(maior[0]);}
+  document.getElementById('metaTableCount').textContent=md.length+' dias';
+  mkChart('chartMeta','bar',{labels:md.map(([iso])=>fmtISO(iso)),datasets:[{label:'Gasto',data:md.map(([,d])=>d.gasto),backgroundColor:'rgba(59,130,246,.7)',borderRadius:5,barPercentage:.8}]},{...chartDefaults,plugins:{...chartDefaults.plugins,tooltip:{...chartDefaults.plugins.tooltip,callbacks:{label:ctx=>'Gasto: '+fmtBRL(ctx.parsed.y)}}},scales:{...chartDefaults.scales,y:{...chartDefaults.scales.y,ticks:{color:'#3d4f63',font:{size:10},callback:v=>'R$'+(Math.abs(v)>=1000?(v/1000).toFixed(1)+'k':v)}}}});
+  const mRows=md.slice().reverse().map(([iso,d])=>`<tr><td style="color:var(--text2);font-size:12px;font-weight:500">${fmtISO(iso)}${iso===todayISO()?'<span class="today-tag">hoje</span>':''}</td><td style="color:var(--blue);font-weight:700">${fmtBRL(d.gasto)}</td></tr>`).join('');
+  document.getElementById('metaTableWrap').innerHTML=mRows?`<table><thead><tr><th>Data</th><th>Gasto ADS</th></tr></thead><tbody>${mRows}</tbody></table>`:'<div class="empty">Nenhum gasto registrado.</div>';
+}
+
+// ── Performance page ──
+function renderPerformancePage(){
+  const s=Object.entries(days).filter(([,d])=>d.gasto>0).sort((a,b)=>a[0].localeCompare(b[0]));
+  const labels=s.map(([iso])=>fmtISO(iso));
+  const rois=s.map(([,d])=>d.gasto>0?(d.lucro/d.gasto)*100:0);
+  const roasList=s.map(([,d])=>d.gasto>0?(d.lucro+d.gasto)/d.gasto:0);
+  const lineOpts={...chartDefaults,elements:{line:{tension:.4},point:{radius:3}}};
+  mkChart('chartROI','line',{labels,datasets:[{label:'ROI',data:rois,borderColor:'#a855f7',backgroundColor:'rgba(168,85,247,.1)',fill:true,tension:.4,pointRadius:3,pointBackgroundColor:'#a855f7'}]},{...lineOpts,plugins:{...lineOpts.plugins,tooltip:{...lineOpts.plugins.tooltip,callbacks:{label:ctx=>ctx.parsed.y.toFixed(1)+'%'}}},scales:{...lineOpts.scales,y:{...lineOpts.scales.y,ticks:{color:'#3d4f63',font:{size:10},callback:v=>v.toFixed(0)+'%'}}}});
+  mkChart('chartROAS','line',{labels,datasets:[{label:'ROAS',data:roasList,borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,.1)',fill:true,tension:.4,pointRadius:3,pointBackgroundColor:'#3b82f6'}]},{...lineOpts,plugins:{...lineOpts.plugins,tooltip:{...lineOpts.plugins.tooltip,callbacks:{label:ctx=>ctx.parsed.y.toFixed(2)+'x'}}},scales:{...lineOpts.scales,y:{...lineOpts.scales.y,ticks:{color:'#3d4f63',font:{size:10},callback:v=>v.toFixed(1)+'x'}}}});
+  const monthly={};
+  Object.entries(days).forEach(([iso,d])=>{const m=iso.slice(0,7);if(!monthly[m])monthly[m]={g:0,l:0};monthly[m].g+=d.gasto;monthly[m].l+=d.lucro;});
+  const mKeys=Object.keys(monthly).sort();
+  const mLabels=mKeys.map(m=>{const[y,mo]=m.split('-');return mo+'/'+y;});
+  mkChart('chartMensal','bar',{labels:mLabels,datasets:[{label:'Gasto',data:mKeys.map(m=>monthly[m].g),backgroundColor:'rgba(59,130,246,.6)',borderRadius:5,barPercentage:.7},{label:'Lucro',data:mKeys.map(m=>monthly[m].l),backgroundColor:'rgba(34,197,94,.7)',borderRadius:5,barPercentage:.7}]},{...chartDefaults,plugins:{...chartDefaults.plugins,tooltip:{...chartDefaults.plugins.tooltip,callbacks:{label:ctx=>ctx.dataset.label+': '+fmtBRL(ctx.parsed.y)}}},scales:{...chartDefaults.scales,y:{...chartDefaults.scales.y,ticks:{color:'#3d4f63',font:{size:10},callback:v=>'R$'+(Math.abs(v)>=1000?(v/1000).toFixed(1)+'k':v)}}}});
+  const bestROI=rois.length?Math.max(...rois):null;
+  const bestROAS=roasList.length?Math.max(...roasList):null;
+  const posCount=Object.values(days).filter(d=>d.lucro>0).length;
+  const total=Object.keys(days).length;
+  document.getElementById('perfBestROI').textContent=bestROI!==null?'+'+bestROI.toFixed(1)+'%':'—';
+  document.getElementById('perfBestROAS').textContent=bestROAS!==null?bestROAS.toFixed(2)+'x':'—';
+  const bestROIDay=s.length?s.reduce((a,b)=>rois[s.indexOf(b)]>rois[s.indexOf(a)]?b:a):null;
+  const bestROASDay=s.length?s.reduce((a,b)=>roasList[s.indexOf(b)]>roasList[s.indexOf(a)]?b:a):null;
+  if(bestROIDay)document.getElementById('perfBestROISub').textContent=fmtISO(bestROIDay[0]);
+  if(bestROASDay)document.getElementById('perfBestROASSub').textContent=fmtISO(bestROASDay[0]);
+  document.getElementById('perfDiasPos').textContent=posCount;
+  document.getElementById('perfDiasPosP').textContent=`de ${total} dias registrados`;
+}
+
+// ── Relatórios ──
+function renderRelatoriosPage(){
+  const p=parseInt(document.getElementById('relPeriod').value);
+  const fd=filteredFor(p);
+  document.getElementById('relTableCount').textContent=fd.length+' dias';
+  if(!fd.length){document.getElementById('relTableWrap').innerHTML='<div class="empty">Nenhum dado.</div>';return;}
+  const rows=fd.slice().reverse().map(([iso,d])=>{
+    const roi=d.gasto>0?(d.lucro/d.gasto)*100:null;
+    const roas=d.gasto>0?(d.lucro+d.gasto)/d.gasto:null;
+    const pos=d.lucro>=0;
+    return`<tr><td style="color:var(--text2);font-size:12px">${fmtISO(iso)}</td><td style="color:var(--blue);font-weight:600">${fmtBRL(d.gasto)}</td><td style="color:${pos?'var(--green)':'var(--red)'};font-weight:600">${pos?'':'-'}${fmtBRL(d.lucro)}</td><td>${roi!==null?`<span class="pill ${roi>0?'pill-g':roi<0?'pill-r':'pill-b'}">${roi>=0?'+':''}${roi.toFixed(1)}%</span>`:'—'}</td><td>${roas!==null?`<span class="pill pill-b">${roas.toFixed(2)}x</span>`:'—'}</td></tr>`;
+  }).join('');
+  document.getElementById('relTableWrap').innerHTML=`<table><thead><tr><th>Data</th><th>Gasto ADS</th><th>Lucro</th><th>ROI</th><th>ROAS</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function exportExcel(){
+  const p=parseInt(document.getElementById('relPeriod').value);
+  const fd=filteredFor(p);
+  if(!fd.length){toast('Nenhum dado para exportar','err');return;}
+  const wsData=[['Data','Gasto ADS (R$)','Lucro (R$)','ROI (%)','ROAS']];
+  fd.forEach(([iso,d])=>{
+    const roi=d.gasto>0?((d.lucro/d.gasto)*100).toFixed(1):'—';
+    const roas=d.gasto>0?((d.lucro+d.gasto)/d.gasto).toFixed(2):'—';
+    wsData.push([fmtISO(iso),d.gasto.toFixed(2),d.lucro.toFixed(2),roi,roas]);
+  });
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.aoa_to_sheet(wsData);
+  ws['!cols']=[{wch:12},{wch:16},{wch:14},{wch:10},{wch:10}];
+  XLSX.utils.book_append_sheet(wb,ws,'adsflow');
+  XLSX.writeFile(wb,`adsflow_${todayISO()}.xlsx`);
+  toast('✓ Excel exportado!','ok');
+}
+
+// ── Conta ──
+function renderContaPage(){
+  document.getElementById('cfgToken').value=CFG.metaToken;
+  document.getElementById('cfgAccount').value=CFG.metaAccount;
+  document.getElementById('cfgColData').value=String.fromCharCode(65+CFG.colData);
+  document.getElementById('cfgColLucro').value=String.fromCharCode(65+CFG.colLucro);
+}
+async function saveCredentials(){
+  const token=document.getElementById('cfgToken').value.trim();
+  let account=document.getElementById('cfgAccount').value.trim();
+  if(!token||!account){toast('Preencha token e account ID','err');return;}
+  if(!account.startsWith('act_'))account='act_'+account;
+  CFG.metaToken=token;CFG.metaAccount=account;
+  localStorage.setItem('af-cfg',JSON.stringify(CFG));
+  document.getElementById('tokenAlert').innerHTML='';
+  toast('Credenciais salvas! Sincronizando...','ok');
+  await syncAll();
+}
+async function testToken(){
+  const token=document.getElementById('cfgToken').value.trim();
+  const account=document.getElementById('cfgAccount').value.trim()||CFG.metaAccount;
+  if(!token){toast('Cole o token primeiro','err');return;}
+  try{
+    const res=await fetch(`https://graph.facebook.com/v19.0/${account}?fields=name&access_token=${token}`);
+    const data=await res.json();
+    if(data.error)throw new Error(data.error.message);
+    document.getElementById('tokenAlert').innerHTML=`<div class="alert-box success"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Token válido! Conta: ${data.name}</div>`;
+  }catch(e){
+    document.getElementById('tokenAlert').innerHTML=`<div class="alert-box warn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Token inválido: ${e.message}</div>`;
+  }
+}
+function saveSheetConfig(){
+  const colD=document.getElementById('cfgColData').value.trim().toUpperCase()||'A';
+  const colL=document.getElementById('cfgColLucro').value.trim().toUpperCase()||'J';
+  CFG.colData=colIdx(colD);CFG.colLucro=colIdx(colL);
+  localStorage.setItem('af-cfg',JSON.stringify(CFG));
+  toast('Configuração salva! Sincronizando...','ok');
+  syncAll();
+}
+
+// ── Prefs ──
+function savePref(){localStorage.setItem('af-prefs',JSON.stringify({autoSync:document.getElementById('togAutoSync').checked,tags:document.getElementById('togTags').checked,tokenAlert:document.getElementById('togTokenAlert').checked}));}
+function loadPrefs(){
+  const p=localStorage.getItem('af-prefs');
+  if(p){try{const pp=JSON.parse(p);
+    document.getElementById('togAutoSync').checked=pp.autoSync!==false;
+    document.getElementById('togTags').checked=pp.tags!==false;
+    document.getElementById('togTokenAlert').checked=pp.tokenAlert!==false;
+  }catch(e){}}
+}
+
+// ── Init ──
+(async()=>{
+  const theme=localStorage.getItem('af-theme')||'dark';
+  document.documentElement.dataset.theme=theme;
+  if(theme==='light'){const icon=document.getElementById('themeIcon');icon.innerHTML='<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';}
+  loadPrefs();
+
+  const{data}=await supa.auth.getSession();
+  if(data.session){showApp(data.session.user.email);}
+})();
+</script>
+</body>
+</html>
