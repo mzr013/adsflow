@@ -330,6 +330,7 @@ tbody tr:nth-child(even) td{background:rgba(255,255,255,.015)}
     <div class="nav-item" onclick="goTo('relatorios',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Relatórios</div>
     <div class="nav-section">Conta</div>
     <div class="nav-item" onclick="goTo('conta',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Minha conta</div>
+    <div class="nav-item" onclick="goTo('estoque',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M6 8h.01M10 8h8M6 12h.01M10 12h5"/></svg>Estoque</div>
     <div class="nav-item" onclick="goTo('config',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>Configurações</div>
   </nav>
   <div class="sidebar-footer">
@@ -583,9 +584,36 @@ tbody tr:nth-child(even) td{background:rgba(255,255,255,.015)}
       </div>
     </div>
   </div>
-</div>
 
-<!-- BOTTOM NAV (mobile) -->
+  <!-- ESTOQUE -->
+  <div class="page" id="page-estoque">
+    <div class="page-header">
+      <div><h1>Estoque</h1><p>Inventário de aparelhos</p></div>
+      <div class="page-header-right">
+        <div class="filter-group"><span class="filter-label">Ação</span>
+          <button class="btn-primary" onclick="syncEstoque()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>Atualizar
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="metrics-grid">
+      <div class="metric-card"><div class="metric-icon ic-blue"><svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div><div class="metric-label">iPhones em estoque</div><div class="metric-value c-blue" id="estIphones">—</div><div class="metric-sub">aparelhos Apple</div></div>
+      <div class="metric-card"><div class="metric-icon ic-purple"><svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></div><div class="metric-label">Acessórios / Outros</div><div class="metric-value c-purple" id="estAcessorios">—</div><div class="metric-sub">itens não iPhone</div></div>
+      <div class="metric-card"><div class="metric-icon ic-green"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div class="metric-label">Valor em estoque</div><div class="metric-value c-green" id="estValor">—</div><div class="metric-sub">custo total investido</div></div>
+      <div class="metric-card"><div class="metric-icon ic-yellow"><svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="metric-label">Mais tempo em estoque</div><div class="metric-value c-yellow" style="font-size:16px" id="estMaisVelho">—</div><div class="metric-sub" id="estMaisVelhoData">—</div></div>
+    </div>
+    <div class="section-card">
+      <div class="section-head">
+        <div class="s-bar" style="background:var(--red);box-shadow:0 0 8px var(--red)"></div>
+        <div class="s-title">🔍 Celulares em "Achar"</div>
+        <span style="margin-left:auto;font-size:11px;color:var(--text3)" id="estAcharCount">—</span>
+      </div>
+      <div id="estAcharList"><div class="empty">Carregando...</div></div>
+    </div>
+  </div>
+
+</div><!-- BOTTOM NAV (mobile) -->
 <nav class="bottom-nav">
   <div class="bottom-nav-inner">
     <div class="bottom-nav-item active" onclick="goTo('resumo',this)" id="bnav-resumo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span>Resumo</span></div>
@@ -657,7 +685,7 @@ function goTo(page,el){
   if(el)el.classList.add('active');
   // also highlight bottom nav
   const bn=document.getElementById('bnav-'+page);if(bn)bn.classList.add('active');
-  const titles={resumo:['Dashboard','— Principal'],meta:['Meta Ads','— Gastos'],performance:['Performance','— Análise'],relatorios:['Relatórios','— Exportação'],conta:['Minha conta','— Credenciais'],config:['Configurações','— Preferências']};
+  const titles={resumo:['Dashboard','— Principal'],meta:['Meta Ads','— Gastos'],performance:['Performance','— Análise'],relatorios:['Relatórios','— Exportação'],conta:['Minha conta','— Credenciais'],config:['Configurações','— Preferências'],estoque:['Estoque','— Inventário']};
   const t=titles[page]||['Dashboard',''];
   document.getElementById('topbarTitle').textContent=t[0];
   document.getElementById('topbarSub').textContent=t[1];
@@ -667,6 +695,7 @@ function goTo(page,el){
   if(page==='relatorios')renderRelatoriosPage();
   if(page==='conta')renderContaPage();
   if(page==='config')loadPrefs();
+  if(page==='estoque')syncEstoque();
 }
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show');}
 function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('show');}
@@ -1213,6 +1242,70 @@ function loadPrefs(){
     document.getElementById('togTags').checked=pp.tags!==false;
     document.getElementById('togTokenAlert').checked=pp.tokenAlert!==false;
   }catch(e){}}
+}
+
+// ── Estoque ──
+let estoqueData=[];
+async function syncEstoque(){
+  try{
+    const r=await fetch('/api/estoque');
+    const j=await r.json();
+    if(j.error)throw new Error(j.error);
+    const rows=parseCSV(j.csv);
+    if(rows.length<2){toast('Estoque sem dados','err');return;}
+    // header: modelo(0) cor(1) gb(2) imei(3) entrada(4) custo(5) total(6) saude(7) reparo(8) situacao(9)
+    estoqueData=rows.slice(1).filter(r=>r[0]&&r[0].trim());
+    renderEstoque();
+    toast('✓ Estoque atualizado','ok');
+  }catch(e){toast('Erro ao carregar estoque: '+e.message,'err');}
+}
+
+function renderEstoque(){
+  const data=estoqueData;
+  // iPhones vs acessórios
+  const iphones=data.filter(r=>r[0].toLowerCase().includes('iphone'));
+  const acessorios=data.filter(r=>!r[0].toLowerCase().includes('iphone'));
+  document.getElementById('estIphones').textContent=iphones.length;
+  document.getElementById('estAcessorios').textContent=acessorios.length;
+
+  // valor total
+  const total=data.reduce((a,r)=>a+parseNum(r[5]),0);
+  document.getElementById('estValor').textContent=fmtBRL(total);
+
+  // mais velho no estoque
+  let maisVelho=null;
+  data.forEach(r=>{
+    const iso=parseDateBR(r[4]);
+    if(!iso)return;
+    if(!maisVelho||iso<maisVelho[0])maisVelho=[iso,r[0],r[1],r[2]];
+  });
+  if(maisVelho){
+    document.getElementById('estMaisVelho').textContent=maisVelho[1]+(maisVelho[3]?' '+maisVelho[3]+'GB':'');
+    const dias=Math.floor((new Date()-new Date(maisVelho[0]))/(1000*60*60*24));
+    document.getElementById('estMaisVelhoData').textContent=`Entrada: ${fmtISO(maisVelho[0])} — ${dias} dias`;
+  }
+
+  // em achar
+  const achar=data.filter(r=>(r[9]||'').toLowerCase().includes('achar'));
+  document.getElementById('estAcharCount').textContent=achar.length+' aparelho'+(achar.length!==1?'s':'');
+  if(!achar.length){
+    document.getElementById('estAcharList').innerHTML='<div class="empty" style="padding:1.5rem">Nenhum aparelho em "Achar" 🎉</div>';
+    return;
+  }
+  const rows=achar.map(r=>{
+    const iso=parseDateBR(r[4]);
+    const dias=iso?Math.floor((new Date()-new Date(iso))/(1000*60*60*24)):null;
+    return`<tr>
+      <td style="font-weight:600">${r[0]||'—'}</td>
+      <td style="color:var(--text2)">${r[1]||'—'}</td>
+      <td style="color:var(--text2)">${r[2]?r[2]+'GB':'—'}</td>
+      <td style="color:var(--text3);font-size:12px">${r[3]||'—'}</td>
+      <td style="color:var(--blue);font-weight:600">${fmtBRL(parseNum(r[5]))}</td>
+      <td>${iso?fmtISO(iso)+'<span style="font-size:10px;color:var(--text3);margin-left:6px">'+dias+'d</span>':'—'}</td>
+      <td><span style="background:var(--red-dim);color:var(--red);padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700">Achar</span></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('estAcharList').innerHTML=`<div class="table-wrap"><table><thead><tr><th>Modelo</th><th>Cor</th><th>GB</th><th>IMEI</th><th>Custo</th><th>Entrada</th><th>Situação</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
 // ── Init ──
