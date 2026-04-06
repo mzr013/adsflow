@@ -1263,16 +1263,16 @@ async function syncEstoque(){
 function renderEstoque(){
   const data=estoqueData;
   // iPhones vs acessórios
-  const iphones=data.filter(r=>r[0].toLowerCase().includes('iphone'));
-  const acessorios=data.filter(r=>!r[0].toLowerCase().includes('iphone'));
+  const iphones=data.filter(r=>(r[0]||'').toLowerCase().includes('iphone'));
+  const acessorios=data.filter(r=>!(r[0]||'').toLowerCase().includes('iphone'));
   document.getElementById('estIphones').textContent=iphones.length;
   document.getElementById('estAcessorios').textContent=acessorios.length;
 
-  // valor total
+  // valor total (coluna F = index 5)
   const total=data.reduce((a,r)=>a+parseNum(r[5]),0);
   document.getElementById('estValor').textContent=fmtBRL(total);
 
-  // mais velho no estoque
+  // mais velho no estoque (coluna E = index 4)
   let maisVelho=null;
   data.forEach(r=>{
     const iso=parseDateBR(r[4]);
@@ -1285,8 +1285,8 @@ function renderEstoque(){
     document.getElementById('estMaisVelhoData').textContent=`Entrada: ${fmtISO(maisVelho[0])} — ${dias} dias`;
   }
 
-  // em achar
-  const achar=data.filter(r=>(r[9]||'').toLowerCase().includes('achar'));
+  // em achar (coluna K = index 10)
+  const achar=data.filter(r=>(r[10]||'').toLowerCase().includes('achar'));
   document.getElementById('estAcharCount').textContent=achar.length+' aparelho'+(achar.length!==1?'s':'');
   if(!achar.length){
     document.getElementById('estAcharList').innerHTML='<div class="empty" style="padding:1.5rem">Nenhum aparelho em "Achar" 🎉</div>';
@@ -1298,7 +1298,7 @@ function renderEstoque(){
     return`<tr>
       <td style="font-weight:600">${r[0]||'—'}</td>
       <td style="color:var(--text2)">${r[1]||'—'}</td>
-      <td style="color:var(--text2)">${r[2]?r[2]+'GB':'—'}</td>
+      <td style="color:var(--text2)">${r[2]?r[2]:'—'}</td>
       <td style="color:var(--text3);font-size:12px">${r[3]||'—'}</td>
       <td style="color:var(--blue);font-weight:600">${fmtBRL(parseNum(r[5]))}</td>
       <td>${iso?fmtISO(iso)+'<span style="font-size:10px;color:var(--text3);margin-left:6px">'+dias+'d</span>':'—'}</td>
