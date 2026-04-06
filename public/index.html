@@ -1254,7 +1254,7 @@ async function syncEstoque(){
     const rows=parseCSV(j.csv);
     if(rows.length<2){toast('Estoque sem dados','err');return;}
     // header: modelo(0) cor(1) gb(2) imei(3) entrada(4) custo(5) total(6) saude(7) reparo(8) situacao(9)
-    estoqueData=rows.slice(1).filter(r=>r[0]&&r[0].trim());
+    estoqueData=rows.slice(1).filter(r=>r[0]&&r[0].trim()&&r[0].trim()!=='MODELO');
     renderEstoque();
     toast('✓ Estoque atualizado','ok');
   }catch(e){toast('Erro ao carregar estoque: '+e.message,'err');}
@@ -1263,13 +1263,17 @@ async function syncEstoque(){
 function renderEstoque(){
   const data=estoqueData;
   // iPhones vs acessórios
-  const iphones=data.filter(r=>(r[0]||'').toLowerCase().includes('iphone'));
-  const acessorios=data.filter(r=>!(r[0]||'').toLowerCase().includes('iphone'));
+  const phoneKeywords=['iphone','xr'];
+  const iphones=data.filter(r=>phoneKeywords.some(k=>(r[0]||'').toLowerCase().includes(k)));
+  const acessorios=data.filter(r=>!phoneKeywords.some(k=>(r[0]||'').toLowerCase().includes(k)));
   document.getElementById('estIphones').textContent=iphones.length;
   document.getElementById('estAcessorios').textContent=acessorios.length;
 
   // valor total (coluna F = index 5)
-  const total=data.reduce((a,r)=>a+parseNum(r[5]),0);
+  const total=data.reduce((a,r)=>{
+    const v=parseNum(r[5]);
+    return a+(isNaN(v)?0:v);
+  },0);
   document.getElementById('estValor').textContent=fmtBRL(total);
 
   // mais velho no estoque (coluna E = index 4)
