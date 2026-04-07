@@ -870,8 +870,8 @@ async function syncMeta(){
     (data.data||[]).forEach(item=>{
       const gasto=parseFloat(item.spend)||0;if(!gasto)return;
       const iso=item.date_start;
-      // Só adiciona gasto do Meta se o dia JÁ existe na planilha
-      if(!days[iso])return;
+      // Cria o dia mesmo se não existe na planilha
+      if(!days[iso])days[iso]={gasto:0,lucro:0,srcG:'',srcL:''};
       days[iso].gasto=gasto;days[iso].srcG='meta';count++;
     });
     dot.className='source-dot on';lbl.textContent='Meta ✓';
