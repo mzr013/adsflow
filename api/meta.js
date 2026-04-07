@@ -28,24 +28,37 @@ export default async function handler(req, res) {
   const until = new Date().toISOString().slice(0, 10);
 
   const fetchData = async (token) => {
-    const url = `https://graph.facebook.com/v19.0/${ACCOUNT}/insights?fields=spend,date_start&time_increment=1&time_range={"since":"${since}","until":"${until}"}&limit=90&access_token=${token}`;
+    const url = `https://graph.facebook.com/v19.0/${ACCOUNT}/insights?fields=spend,impressions,clicks,cpm,cpc,ctr,reach,date_start&time_increment=1&time_range={"since":"${since}","until":"${until}"}&limit=90&access_token=${token}`;
+    const response = await fetch(url);
+    return await response.json();
+  };
+
+  const fetchCampaigns = async (token) => {
+    const since7 = (() => { const d = new Date(); d.setDate(d.getDate() - 7); return d.toISOString().slice(0, 10); })();
+    const url = `https://graph.facebook.com/v19.0/${ACCOUNT}/insights?fields=campaign_name,adset_name,spend,impressions,clicks,cpm,cpc,ctr,reach&time_range={"since":"${since7}","until":"${until}"}&level=campaign&limit=50&access_token=${token}`;
     const response = await fetch(url);
     return await response.json();
   };
 
   try {
-    let data = await fetchData(TOKEN);
-    if (data.error && (data.error.code === 190 || data.error.code === 102)) {
+    let [daily, campaigns] = await Promise.all([fetchData(TOKEN), fetchCampaigns(TOKEN)]);
+
+    if (daily.error && (daily.error.code === 190 || daily.error.code === 102)) {
       const newToken = await refreshToken(TOKEN);
       if (newToken) {
         TOKEN = newToken;
-        data = await fetchData(TOKEN);
+        [daily, campaigns] = await Promise.all([fetchData(TOKEN), fetchCampaigns(TOKEN)]);
       } else {
         return res.status(401).json({ error: 'Token expirado. Atualize em Minha conta.' });
       }
     }
-    if (data.error) return res.status(400).json({ error: data.error.message });
-    return res.status(200).json({ data: data.data || [] });
+
+    if (daily.error) return res.status(400).json({ error: daily.error.message });
+
+    return res.status(200).json({
+      data: daily.data || [],
+      campaigns: campaigns.data || []
+    });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
