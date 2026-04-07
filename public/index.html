@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="dark">
 <head>
@@ -1087,7 +1088,12 @@ function renderMetaBanner() {
   const ym = now.toISOString().slice(0, 7);
   const diasNoMes = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
   const diaAtual = now.getDate();
-  const diasRestantes = diasNoMes - diaAtual;
+  // Conta apenas dias úteis restantes (seg-sab, sem domingo)
+  let diasRestantes = 0;
+  for(let d = diaAtual + 1; d <= diasNoMes; d++) {
+    const diaSemana = new Date(now.getFullYear(), now.getMonth(), d).getDay();
+    if(diaSemana !== 0) diasRestantes++; // 0 = domingo
+  }
 
   const lucroMes = Object.entries(days)
     .filter(([iso]) => iso.startsWith(ym))
