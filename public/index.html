@@ -406,6 +406,7 @@ tbody tr:nth-child(even) td{background:rgba(255,255,255,.015)}
     <div class="nav-item" onclick="goTo('relatorios',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Relatórios</div>
     <div class="nav-section">Conta</div>
     <div class="nav-item" onclick="goTo('conta',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Minha conta</div>
+    <div class="nav-item" onclick="goTo('campanhas',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Campanhas</div>
     <div class="nav-item" onclick="goTo('estoque',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M6 8h.01M10 8h8M6 12h.01M10 12h5"/></svg>Estoque</div>
     <div class="nav-item" onclick="goTo('config',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>Configurações</div>
   </nav>
@@ -647,6 +648,58 @@ tbody tr:nth-child(even) td{background:rgba(255,255,255,.015)}
     </div>
   </div>
 
+  <!-- CAMPANHAS -->
+  <div class="page" id="page-campanhas">
+    <div class="page-header">
+      <div><h1>Campanhas</h1><p>Análise de performance — últimos 7 dias</p></div>
+      <div class="page-header-right">
+        <button class="btn-primary" onclick="renderCampanhas()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>Atualizar
+        </button>
+      </div>
+    </div>
+
+    <!-- KPIs gerais -->
+    <div class="camp-grid" id="campKpis">
+      <div class="metric-card"><div class="metric-label">Total gasto (7d)</div><div class="metric-value c-blue" id="campTotalSpend">—</div><div class="metric-sub" id="campNcamps">— campanhas ativas</div></div>
+      <div class="metric-card"><div class="metric-label">CPM médio</div><div class="metric-value" id="campCpm">—</div><div class="metric-sub">custo por mil impressões</div></div>
+      <div class="metric-card"><div class="metric-label">CPC médio</div><div class="metric-value" id="campCpc">—</div><div class="metric-sub">custo por clique</div></div>
+      <div class="metric-card"><div class="metric-label">CTR médio</div><div class="metric-value" id="campCtr">—</div><div class="metric-sub">taxa de cliques</div></div>
+    </div>
+
+    <!-- Alertas automáticos -->
+    <div class="section-card">
+      <div class="section-head"><div class="s-bar"></div><div class="s-title">Alertas do gestor</div></div>
+      <div class="alert-list" id="campAlertas"><div class="empty">Carregando análise...</div></div>
+    </div>
+
+    <!-- Tabela de campanhas -->
+    <div class="section-card" style="padding:0;overflow:hidden">
+      <div class="table-header">
+        <span class="table-title">Campanhas ativas</span>
+        <span class="table-count" id="campCount">—</span>
+      </div>
+      <div class="camp-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Campanha</th>
+              <th>Gasto</th>
+              <th>Impressões</th>
+              <th>Cliques</th>
+              <th>CTR</th>
+              <th>CPM</th>
+              <th>CPC</th>
+              <th>Alcance</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="campTableBody"><tr><td colspan="9" class="empty">Carregando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <!-- ESTOQUE -->
   <div class="page" id="page-estoque">
     <div class="page-header">
@@ -748,7 +801,7 @@ function goTo(page,el){
   if(el)el.classList.add('active');
   // also highlight bottom nav
   const bn=document.getElementById('bnav-'+page);if(bn)bn.classList.add('active');
-  const titles={resumo:['Dashboard','— Principal'],meta:['Meta Ads','— Gastos'],performance:['Performance','— Análise'],relatorios:['Relatórios','— Exportação'],conta:['Minha conta','— Credenciais'],config:['Configurações','— Preferências'],estoque:['Estoque','— Inventário']};
+  const titles={resumo:['Dashboard','— Principal'],meta:['Meta Ads','— Gastos'],performance:['Performance','— Análise'],relatorios:['Relatórios','— Exportação'],conta:['Minha conta','— Credenciais'],config:['Configurações','— Preferências'],estoque:['Estoque','— Inventário'],campanhas:['Campanhas','— Gestor de Tráfego']};
   const t=titles[page]||['Dashboard',''];
   document.getElementById('topbarTitle').textContent=t[0];
   document.getElementById('topbarSub').textContent=t[1];
@@ -759,6 +812,7 @@ function goTo(page,el){
   if(page==='conta')renderContaPage();
   if(page==='config')loadPrefs();
   if(page==='estoque')syncEstoque();
+  if(page==='campanhas')renderCampanhas();
 }
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show');}
 function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('show');}
@@ -876,6 +930,9 @@ async function syncMeta(){
     });
     dot.className='source-dot on';lbl.textContent='Meta ✓';
     toast(`✓ ${count} dias do Meta Ads`,'ok');
+    // Store campaign data
+    campData = data.campaigns || [];
+    if(document.getElementById('page-campanhas').classList.contains('active')) buildCampanhas(campData);
   }catch(e){
     dot.className='source-dot err';lbl.textContent='Meta ✗';
     toast('Erro ao carregar Meta Ads: '+e.message,'err');
@@ -1355,6 +1412,116 @@ function loadPrefs(){
     document.getElementById('togTags').checked=pp.tags!==false;
     document.getElementById('togTokenAlert').checked=pp.tokenAlert!==false;
   }catch(e){}}
+}
+
+// ── Campanhas ──
+let campData = [];
+
+function renderCampanhas() {
+  if (!campData.length) {
+    // Fetch from already loaded meta data
+    document.getElementById('campAlertas').innerHTML = '<div class="empty">Sincronize os dados primeiro (clique em Atualizar no Resumo).</div>';
+    return;
+  }
+  buildCampanhas(campData);
+}
+
+function buildCampanhas(camps) {
+  if (!camps.length) {
+    document.getElementById('campAlertas').innerHTML = '<div class="empty">Nenhuma campanha encontrada.</div>';
+    return;
+  }
+
+  // KPIs
+  const totalSpend = camps.reduce((a, c) => a + parseFloat(c.spend || 0), 0);
+  const avgCpm = camps.reduce((a, c) => a + parseFloat(c.cpm || 0), 0) / camps.length;
+  const avgCpc = camps.reduce((a, c) => a + parseFloat(c.cpc || 0), 0) / camps.length;
+  const avgCtr = camps.reduce((a, c) => a + parseFloat(c.ctr || 0), 0) / camps.length;
+
+  document.getElementById('campTotalSpend').textContent = fmtBRL(totalSpend);
+  document.getElementById('campNcamps').textContent = camps.length + ' campanhas ativas';
+  document.getElementById('campCpm').textContent = 'R$ ' + avgCpm.toFixed(2);
+  document.getElementById('campCpc').textContent = 'R$ ' + avgCpc.toFixed(2);
+  document.getElementById('campCtr').textContent = avgCtr.toFixed(2) + '%';
+  document.getElementById('campCount').textContent = camps.length + ' campanhas';
+
+  // Alertas automáticos
+  const alerts = [];
+  const sorted = [...camps].sort((a, b) => parseFloat(b.spend) - parseFloat(a.spend));
+
+  camps.forEach(c => {
+    const ctr = parseFloat(c.ctr);
+    const cpm = parseFloat(c.cpm);
+    const cpc = parseFloat(c.cpc);
+    const spend = parseFloat(c.spend);
+    const name = c.campaign_name.replace(/\[GG\]\s*/g, '').replace(/Campanha.*/g, '').trim();
+
+    if (ctr < 0.8) {
+      alerts.push({ type: 'danger', msg: `<strong>${name}</strong> — CTR muito baixo (${ctr.toFixed(2)}%). Criativo provavelmente cansado. Considere pausar ou trocar o anúncio.` });
+    } else if (ctr < 1.2) {
+      alerts.push({ type: 'warn', msg: `<strong>${name}</strong> — CTR abaixo da média (${ctr.toFixed(2)}%). Testar novo criativo pode melhorar resultado.` });
+    }
+
+    if (cpm > 25) {
+      alerts.push({ type: 'danger', msg: `<strong>${name}</strong> — CPM elevado (R$ ${cpm.toFixed(2)}). Audiência saturada ou concorrência alta. Revise a segmentação.` });
+    }
+
+    if (cpc > 2.0) {
+      alerts.push({ type: 'warn', msg: `<strong>${name}</strong> — CPC alto (R$ ${cpc.toFixed(2)}). Otimize o CTA ou reduza o público.` });
+    }
+  });
+
+  // Best performer
+  const best = [...camps].sort((a, b) => parseFloat(b.ctr) - parseFloat(a.ctr))[0];
+  if (best) {
+    const bname = best.campaign_name.replace(/\[GG\]\s*/g, '').replace(/Campanha.*/g, '').trim();
+    alerts.unshift({ type: 'good', msg: `<strong>Melhor campanha:</strong> ${bname} com CTR de ${parseFloat(best.ctr).toFixed(2)}% — replique o criativo para outras campanhas.` });
+  }
+
+  // Top spender
+  const topSpend = sorted[0];
+  if (topSpend) {
+    const tname = topSpend.campaign_name.replace(/\[GG\]\s*/g, '').replace(/Campanha.*/g, '').trim();
+    alerts.push({ type: 'info', msg: `<strong>Maior investimento:</strong> ${tname} — R$ ${parseFloat(topSpend.spend).toFixed(2)} (${((parseFloat(topSpend.spend)/totalSpend)*100).toFixed(1)}% do budget total).` });
+  }
+
+  if (!alerts.length) {
+    alerts.push({ type: 'good', msg: 'Todas as campanhas estão com métricas saudáveis! Continue monitorando.' });
+  }
+
+  document.getElementById('campAlertas').innerHTML = alerts.map(a =>
+    `<div class="alert-item ${a.type}">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px">
+        ${a.type==='good'?'<path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>':
+          a.type==='danger'?'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>':
+          a.type==='info'?'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>':
+          '<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>'}
+      </svg>
+      <span>${a.msg}</span>
+    </div>`
+  ).join('');
+
+  // Table
+  const rows = sorted.map(c => {
+    const ctr = parseFloat(c.ctr);
+    const cpm = parseFloat(c.cpm);
+    const cpc = parseFloat(c.cpc);
+    const name = c.campaign_name.replace(/\[GG\]\s*/g, '').trim();
+    const status = ctr >= 1.5 ? 'camp-tag-ok' : ctr >= 1.0 ? 'camp-tag-warn' : 'camp-tag-bad';
+    const statusLabel = ctr >= 1.5 ? 'Ótimo' : ctr >= 1.0 ? 'Regular' : 'Atenção';
+    return `<tr>
+      <td><div class="camp-row-name" title="${c.campaign_name}">${name}</div></td>
+      <td style="color:var(--blue);font-weight:700">R$ ${parseFloat(c.spend).toFixed(2)}</td>
+      <td style="color:var(--text2)">${parseInt(c.impressions||0).toLocaleString('pt-BR')}</td>
+      <td style="color:var(--text2)">${parseInt(c.clicks||0).toLocaleString('pt-BR')}</td>
+      <td><span class="camp-tag ${status}">${ctr.toFixed(2)}%</span></td>
+      <td style="color:var(--text2)">R$ ${cpm.toFixed(2)}</td>
+      <td style="color:var(--text2)">R$ ${cpc.toFixed(2)}</td>
+      <td style="color:var(--text3)">${parseInt(c.reach||0).toLocaleString('pt-BR')}</td>
+      <td><span class="camp-tag ${status}">${statusLabel}</span></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('campTableBody').innerHTML = rows;
 }
 
 // ── Estoque ──
