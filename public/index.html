@@ -61,7 +61,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .nav-section{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);padding:.75rem 1.25rem .3rem;font-weight:600}
 .nav-item{display:flex;align-items:center;gap:9px;padding:.6rem 1.25rem;color:var(--text2);cursor:pointer;font-size:13px;font-weight:500;border-left:2px solid transparent;transition:all .15s;user-select:none;border-radius:0 8px 8px 0;margin-right:8px}
 .nav-item:hover{background:rgba(59,130,246,.06);color:var(--text)}
-.nav-item.active{background:var(--blue-glow);color:var(--blue);border-left-color:var(--blue)}
+.nav-item.active{background:linear-gradient(90deg,rgba(59,130,246,.15),rgba(59,130,246,.04));color:var(--blue);border-left-color:var(--blue);box-shadow:inset 0 0 20px rgba(59,130,246,.05)}
 .nav-item svg{width:15px;height:15px;flex-shrink:0}
 .sidebar-footer{padding:.9rem 1.25rem;border-top:1px solid var(--border)}
 .s-user{display:flex;align-items:center;gap:9px}
@@ -73,7 +73,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 
 /* ── Main ── */
 .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-width:0}
-.topbar{background:var(--sidebar);border-bottom:1px solid var(--border);padding:0 1.5rem;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(8px)}
+.topbar{background:linear-gradient(135deg,var(--sidebar) 0%,rgba(15,19,25,0.95) 100%);border-bottom:1px solid var(--border);padding:0 1.5rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 1px 20px rgba(0,0,0,.2)}
 .topbar-left{display:flex;align-items:center;gap:10px}
 .hamburger{display:none;background:none;border:none;color:var(--text2);cursor:pointer;padding:5px;border-radius:6px}
 .hamburger:hover{background:var(--card2);color:var(--text)}
@@ -96,8 +96,8 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 
 /* ── Page header ── */
 .page-header{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px}
-.page-header h1{font-size:20px;font-weight:700;margin-bottom:3px;letter-spacing:-.3px}
-.page-header p{font-size:12px;color:var(--text3)}
+.page-header h1{font-size:22px;font-weight:800;margin-bottom:2px;letter-spacing:-.5px}
+.page-header p{font-size:12px;color:var(--text3);font-weight:400}
 .page-header-right{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}
 .date-range{display:flex;align-items:flex-end;gap:6px;background:var(--card);border:1px solid var(--border2);border-radius:8px;padding:4px 8px;height:34px}
 .date-range input[type=date]{background:transparent;border:none;color:var(--text);font-family:'Inter',sans-serif;font-size:12px;outline:none;cursor:pointer;height:100%}
@@ -131,30 +131,106 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .trend.neutral{background:var(--card2);color:var(--text3)}
 
 /* ── Skeleton ── */
-.skeleton{background:var(--card2);border-radius:6px}
+.skeleton{background:linear-gradient(90deg,var(--card2) 25%,var(--border2) 50%,var(--card2) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 .skel-value{height:26px;width:70%;margin-bottom:6px}
 .skel-sub{height:12px;width:50%}
 
+/* ── Sparkline ── */
+.sparkline-wrap{margin-top:8px;height:32px;opacity:.7}
+.sparkline-wrap svg{width:100%;height:100%}
+
+/* ── Page transitions ── */
+.page{display:none;padding:1.5rem;flex:1;flex-direction:column;gap:1.25rem}
+.page.active{display:flex;animation:pageIn .25s cubic-bezier(.4,0,.2,1)}
+@keyframes pageIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Better pills ── */
+.pill{display:inline-flex;align-items:center;padding:3px 10px;border-radius:8px;font-size:11px;font-weight:700;letter-spacing:.2px}
+
+/* ── Table improvements ── */
+.table-sticky th{position:sticky;top:0;z-index:2;backdrop-filter:blur(8px)}
+table{border-collapse:separate;border-spacing:0}
+th:first-child{border-radius:8px 0 0 0}
+th:last-child{border-radius:0 8px 0 0}
+tbody tr{transition:background .15s}
+tbody tr:hover td{background:rgba(59,130,246,.06)!important}
+.trend-cell{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:600}
+.trend-up{color:var(--green)}.trend-down{color:var(--red)}.trend-flat{color:var(--text3)}
+
+/* ── Pagination ── */
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;border-top:1px solid var(--border);font-size:12px;color:var(--text3)}
+.pagination-btns{display:flex;gap:4px}
+.pg-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border2);background:var(--card);color:var(--text2);cursor:pointer;font-family:'Inter',sans-serif;font-size:12px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.pg-btn:hover{background:var(--card2);color:var(--text)}
+.pg-btn.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.pg-btn:disabled{opacity:.3;cursor:not-allowed}
+
+/* ── Goal milestone tooltip ── */
+.goal-milestone-hover{cursor:pointer}
+.goal-milestone-hover:hover .goal-milestone-label{color:var(--blue);font-size:10px}
+
+/* ── Loading skeleton cards ── */
+.card-loading .metric-value{height:26px;width:80px;border-radius:6px;background:linear-gradient(90deg,var(--card2) 25%,var(--border2) 50%,var(--card2) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;display:block}
+.card-loading .metric-sub{height:12px;width:60px;border-radius:6px;background:linear-gradient(90deg,var(--card2) 25%,var(--border2) 50%,var(--card2) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;display:block;margin-top:8px}
+
+/* ── Number counter animation ── */
+@keyframes countUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.metric-value.animate{animation:countUp .4s ease}
+
+/* ── Mobile improvements ── */
+@media(max-width:768px){
+  .page{padding:1rem 1rem 5.5rem}
+  .metrics-grid{gap:10px}
+  .metric-card{padding:1rem}
+  .bottom-nav{padding:.6rem 0;box-shadow:0 -4px 20px rgba(0,0,0,.2)}
+  .bottom-nav-item.active{color:var(--blue)}
+  .bottom-nav-item.active span{font-weight:700}
+  .bottom-nav-item.active svg{filter:drop-shadow(0 0 4px rgba(59,130,246,.5))}
+}
+
+/* ── Proj card pulse ── */
+@keyframes projPulse{0%,100%{box-shadow:0 0 0 0 rgba(168,85,247,.2)}50%{box-shadow:0 0 0 8px rgba(168,85,247,0)}}
+.proj-card.near-goal{animation:projPulse 2s infinite}
+
+/* ── Toast improvements ── */
+.toast{border-radius:14px;padding:14px 18px;gap:12px;font-size:13px;font-weight:500;min-width:260px}
+.toast-icon{width:18px;height:18px;flex-shrink:0}
+.toast.ok{border-color:rgba(34,197,94,.3);background:linear-gradient(135deg,var(--card),rgba(34,197,94,.05))}
+.toast.err{border-color:rgba(239,68,68,.3);background:linear-gradient(135deg,var(--card),rgba(239,68,68,.05))}
+
+/* ── Meta banner ── */
+.meta-banner{background:linear-gradient(135deg,rgba(59,130,246,.08),rgba(168,85,247,.06));border:1px solid rgba(59,130,246,.2);border-radius:16px;padding:1.1rem 1.4rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
+.meta-banner-left{display:flex;flex-direction:column;gap:6px}
+.meta-banner-title{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;font-weight:600}
+.meta-banner-msg{font-size:15px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.meta-banner-highlight{color:var(--blue)}
+.meta-banner-right{display:flex;gap:20px;flex-wrap:wrap}
+.meta-banner-stat{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.meta-banner-stat-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px}
+.meta-banner-stat-value{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums}
+.meta-banner-progress{margin-top:8px;height:4px;background:rgba(59,130,246,.15);border-radius:10px;overflow:hidden;width:100%}
+.meta-banner-progress-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--blue),var(--purple));transition:width .6s cubic-bezier(.4,0,.2,1)}
+
 /* ── Metric cards ── */
 .metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
 .metrics-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.metric-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.1rem;transition:all .25s;position:relative;overflow:hidden}
+.metric-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.2rem;transition:all .3s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden}
 .metric-card::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(59,130,246,.03),transparent);pointer-events:none}
-.metric-card:hover{border-color:var(--border2);transform:translateY(-3px);box-shadow:0 12px 28px rgba(0,0,0,.25)}
+.metric-card:hover{border-color:rgba(59,130,246,.3);transform:translateY(-4px);box-shadow:0 20px 40px rgba(0,0,0,.3),0 0 0 1px rgba(59,130,246,.1)}
 .metric-icon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;margin-bottom:12px}
 .ic-blue{background:rgba(59,130,246,.12)}.ic-green{background:rgba(34,197,94,.12)}.ic-red{background:rgba(239,68,68,.12)}.ic-purple{background:rgba(168,85,247,.12)}.ic-yellow{background:rgba(245,158,11,.12)}
 .metric-icon svg{width:15px;height:15px}
-.metric-label{font-size:11px;color:var(--text2);font-weight:500;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between}
-.metric-value{font-size:22px;font-weight:700;letter-spacing:-.5px;line-height:1}
-.metric-sub{font-size:11px;color:var(--text3);margin-top:6px;display:flex;align-items:center;gap:6px}
+.metric-label{font-size:11px;color:var(--text3);font-weight:500;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;text-transform:uppercase;letter-spacing:.4px}
+.metric-value{font-size:23px;font-weight:800;letter-spacing:-.8px;line-height:1;font-variant-numeric:tabular-nums}
+.metric-sub{font-size:11px;color:var(--text3);margin-top:7px;display:flex;align-items:center;gap:6px;font-weight:400}
 .c-blue{color:var(--blue)!important}.c-green{color:var(--green)!important}.c-red{color:var(--red)!important}.c-yellow{color:var(--yellow)!important}
 
 /* ── Section card ── */
-.section-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.25rem}
+.section-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.4rem;transition:border-color .2s}
 .section-head{display:flex;align-items:center;gap:8px;margin-bottom:14px}
-.s-bar{width:3px;height:16px;background:var(--blue);border-radius:2px;box-shadow:0 0 8px var(--blue)}
-.s-title{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.6px}
+.s-bar{width:3px;height:16px;background:var(--blue);border-radius:2px;opacity:.8}
+.s-title{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px}
 .chart-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px}
 .legend{display:flex;gap:12px;font-size:12px;color:var(--text2);margin-top:6px}
 .leg-sq{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:4px;vertical-align:middle}
@@ -393,77 +469,63 @@ tbody tr:nth-child(even) td{background:rgba(255,255,255,.015)}
       </div>
     </div>
 
-    <!-- Hoje vs Ontem -->
-    <div class="today-banner" id="todayBanner">
-      <div class="today-banner-left">
-        <div class="today-dot"></div>
-        <div><div class="today-label">Hoje</div><div class="today-sub" id="todayDate">—</div></div>
+    <!-- Banner Meta + Projeção unificado -->
+    <div class="meta-banner" id="metaBanner">
+      <div class="meta-banner-left">
+        <div class="meta-banner-title">Meta do mês</div>
+        <div class="meta-banner-msg" id="metaBannerMsg">Carregando...</div>
+        <div class="meta-banner-progress"><div class="meta-banner-progress-fill" id="metaBannerProgress" style="width:0%"></div></div>
       </div>
-      <div class="today-stats">
-        <div class="today-stat"><div class="today-stat-label">Gasto ADS</div><div class="today-stat-value c-blue" id="todayGasto">R$ 0,00</div></div>
-        <div class="today-stat"><div class="today-stat-label">Lucro</div><div class="today-stat-value" id="todayLucro">R$ 0,00</div></div>
-        <div class="today-stat"><div class="today-stat-label">ROI</div><div class="today-stat-value" id="todayROI">N/A</div></div>
-        <div class="today-stat"><div class="today-stat-label">vs Ontem</div><div id="todayTrend" class="trend neutral">—</div></div>
+      <div class="meta-banner-right">
+        <div class="meta-banner-stat">
+          <div class="meta-banner-stat-label">Acumulado</div>
+          <div class="meta-banner-stat-value c-green" id="metaBannerAcumulado">—</div>
+        </div>
+        <div class="meta-banner-stat">
+          <div class="meta-banner-stat-label">Projeção</div>
+          <div class="meta-banner-stat-value" id="projVal" style="font-size:16px;font-weight:800">—</div>
+        </div>
+        <div class="meta-banner-stat">
+          <div class="meta-banner-stat-label">Necessário/dia</div>
+          <div class="meta-banner-stat-value c-yellow" id="metaBannerNecessario">—</div>
+        </div>
+        <div class="meta-banner-stat">
+          <div class="meta-banner-stat-label">Dias restantes</div>
+          <div class="meta-banner-stat-value c-blue" id="metaBannerDias">—</div>
+        </div>
       </div>
     </div>
 
-    <!-- Metas de Lucro -->
-    <div class="section-card" id="goalCard">
-      <div class="section-head" style="margin-bottom:10px">
-        <div class="s-bar" style="background:var(--green);box-shadow:0 0 8px var(--green)"></div>
-        <div class="s-title">Metas de lucro líquido</div>
-        <span style="margin-left:auto;font-size:12px;font-weight:700;color:var(--text2)" id="goalLucroAtual">—</span>
+    <!-- Barra de metas discreta -->
+    <div class="section-card" id="goalCard" style="padding:1rem 1.4rem">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <span style="font-size:12px;font-weight:600;color:var(--text2)">Metas de lucro</span>
+          <span style="font-size:12px;font-weight:700;color:var(--text)" id="goalLucroAtual">—</span>
+        </div>
+        <span style="font-size:14px;font-weight:800;color:var(--green)" id="goalPctMain">0%</span>
       </div>
-
-      <!-- Milestones labels -->
-      <div style="position:relative;height:20px;margin:0 0 0">
-        <span style="position:absolute;left:calc(160000/350000*100%);transform:translateX(-50%);font-size:9px;color:var(--text3);font-weight:600;white-space:nowrap">M1</span>
-        <span style="position:absolute;left:calc(200000/350000*100%);transform:translateX(-50%);font-size:9px;color:var(--text3);font-weight:600;white-space:nowrap">M2</span>
-        <span style="position:absolute;left:calc(260000/350000*100%);transform:translateX(-50%);font-size:9px;color:var(--text3);font-weight:600;white-space:nowrap">M3</span>
-        <span style="position:absolute;right:0;font-size:9px;color:var(--yellow);font-weight:700">🏆</span>
+      <div style="position:relative;height:8px;background:var(--card2);border-radius:10px;overflow:hidden">
+        <div style="position:absolute;left:calc(160000/350000*100%);top:0;width:1px;height:100%;background:rgba(255,255,255,.15)"></div>
+        <div style="position:absolute;left:calc(200000/350000*100%);top:0;width:1px;height:100%;background:rgba(255,255,255,.15)"></div>
+        <div style="position:absolute;left:calc(260000/350000*100%);top:0;width:1px;height:100%;background:rgba(255,255,255,.15)"></div>
+        <div class="goal-fill" id="goalBarMain" style="height:100%;width:0%;background:linear-gradient(90deg,#22c55e,#3b82f6);border-radius:10px;transition:width .6s cubic-bezier(.4,0,.2,1)"></div>
       </div>
-
-      <!-- Single progress bar -->
-      <div class="goal-track" style="margin-top:0">
-        <!-- Milestone ticks -->
-        <div style="position:absolute;left:calc(160000/350000*100%);top:0;width:2px;height:100%;background:rgba(255,255,255,.2);z-index:1"></div>
-        <div style="position:absolute;left:calc(200000/350000*100%);top:0;width:2px;height:100%;background:rgba(255,255,255,.2);z-index:1"></div>
-        <div style="position:absolute;left:calc(260000/350000*100%);top:0;width:2px;height:100%;background:rgba(255,255,255,.2);z-index:1"></div>
-        <div class="goal-fill" id="goalBarMain" style="width:0%;background:linear-gradient(90deg,#22c55e,#3b82f6)"></div>
-      </div>
-
-      <!-- Values below bar -->
-      <div style="display:flex;justify-content:space-between;margin-top:6px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;margin-top:6px">
         <span style="font-size:10px;color:var(--text3)">R$ 0</span>
-        <span style="font-size:10px;color:var(--text3);position:absolute;left:calc(160000/350000*100%);transform:translateX(-50%)">160k</span>
-        <span style="font-size:10px;color:var(--text3);position:absolute;left:calc(200000/350000*100%);transform:translateX(-50%)">200k</span>
-        <span style="font-size:10px;color:var(--text3);position:absolute;left:calc(260000/350000*100%);transform:translateX(-50%)">260k</span>
+        <span style="font-size:10px;color:var(--text3)">160k</span>
+        <span style="font-size:10px;color:var(--text3)">200k</span>
+        <span style="font-size:10px;color:var(--text3)">260k</span>
         <span style="font-size:10px;color:var(--yellow);font-weight:600">350k</span>
       </div>
-
-      <!-- Status row -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
+      <div style="margin-top:8px">
         <span style="font-size:12px;color:var(--text3)" id="goalStatus">Carregando...</span>
-        <span style="font-size:18px;font-weight:800;letter-spacing:-.5px" id="goalPctMain">0%</span>
-      </div>
-    </div>
-
-    <!-- Projeção do mês -->
-    <div class="proj-card" id="projCard">
-      <div class="proj-left">
-        <div class="proj-label">📈 Projeção do mês</div>
-        <div class="proj-value" id="projVal">—</div>
-        <div class="proj-sub" id="projSub">baseado na média diária atual</div>
-      </div>
-      <div class="proj-right">
-        <div class="proj-meta" id="projDiasRestantes">—</div>
-        <div class="proj-meta" id="projMedia">—</div>
       </div>
     </div>
 
     <div class="metrics-grid">
-      <div class="metric-card"><div class="metric-icon ic-blue"><svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div class="metric-label">Gastos com anúncios <span class="trend-badge flat" id="trendGasto"></span></div><div class="metric-value c-blue" id="mGasto">R$ 0,00</div><div class="metric-sub" id="mDias">0 dias registrados</div></div>
-      <div class="metric-card"><div class="metric-icon ic-green"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div><div class="metric-label">Lucro líquido <span class="trend-badge flat" id="trendLucro"></span></div><div class="metric-value" id="mLucro">R$ 0,00</div><div class="metric-sub" id="mLucroSub">no período selecionado</div></div>
+      <div class="metric-card"><div class="metric-icon ic-blue"><svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><div class="metric-label">Gastos com anúncios <span class="trend-badge flat" id="trendGasto"></span></div><div class="metric-value c-blue" id="mGasto">R$ 0,00</div><div class="metric-sub" id="mDias">0 dias registrados</div><div class="sparkline-wrap" id="sparkGasto"></div></div>
+      <div class="metric-card"><div class="metric-icon ic-green"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div><div class="metric-label">Lucro líquido <span class="trend-badge flat" id="trendLucro"></span></div><div class="metric-value" id="mLucro">R$ 0,00</div><div class="metric-sub" id="mLucroSub">no período selecionado</div><div class="sparkline-wrap" id="sparkLucro"></div></div>
       <div class="metric-card"><div class="metric-icon ic-purple"><svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></div><div class="metric-label">ROI <span class="trend-badge flat" id="trendROI"></span></div><div class="metric-value" id="mROI">N/A</div><div class="metric-sub">lucro ÷ investimento</div></div>
       <div class="metric-card"><div class="metric-icon ic-blue"><svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="metric-label">ROAS <span class="trend-badge flat" id="trendROAS"></span></div><div class="metric-value" id="mROAS">N/A</div><div class="metric-sub">retorno por R$ 1 investido</div></div>
       <div class="metric-card"><div class="metric-icon ic-green"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><div class="metric-label">Melhor dia</div><div class="metric-value c-green" id="mMelhor">—</div><div class="metric-sub" id="mMelhorSub">—</div></div>
@@ -474,7 +536,7 @@ tbody tr:nth-child(even) td{background:rgba(255,255,255,.015)}
 
     <!-- Ranking de Vendedores -->
     <div class="section-card" id="vendorCard">
-      <div class="section-head"><div class="s-bar" style="background:var(--yellow);box-shadow:0 0 8px var(--yellow)"></div><div class="s-title">Ranking de vendedores</div><span style="margin-left:auto;font-size:11px;color:var(--text3)" id="vendorPeriod">—</span></div>
+      <div class="section-head"><div class="s-bar" style="background:var(--blue)"></div><div class="s-title">Ranking de vendedores</div><span style="margin-left:auto;font-size:11px;color:var(--text3)" id="vendorPeriod">—</span></div>
       <div class="vendor-list" id="vendorList"><div class="empty" style="padding:1rem">Carregando...</div></div>
     </div>
 
@@ -495,7 +557,7 @@ tbody tr:nth-child(even) td{background:rgba(255,255,255,.015)}
 
     <div class="section-card" style="padding:0;overflow:hidden">
       <div class="table-header"><span class="table-title">Histórico de registros</span><span class="table-count" id="tableCount">0 dias</span></div>
-      <div id="tableWrap" class="table-wrap"><div class="empty">Carregando...</div></div>
+      <div id="tableWrap" class="table-wrap"><div class="empty">Carregando...</div></div><div class="pagination" id="tablePagination" style="display:none"><span id="paginationInfo"></span><div class="pagination-btns" id="paginationBtns"></div></div>
     </div>
   </div>
 
@@ -515,10 +577,10 @@ tbody tr:nth-child(even) td{background:rgba(255,255,255,.015)}
   <div class="page" id="page-performance">
     <div class="page-header"><div><h1>Performance</h1><p>Análise de ROI, ROAS e evolução mensal</p></div></div>
     <div class="charts-grid">
-      <div class="section-card"><div class="section-head"><div class="s-bar" style="background:var(--purple);box-shadow:0 0 8px var(--purple)"></div><div class="s-title">ROI ao longo do tempo</div></div><div style="position:relative;width:100%;height:200px"><canvas id="chartROI"></canvas></div></div>
+      <div class="section-card"><div class="section-head"><div class="s-bar" style="background:var(--blue)"></div><div class="s-title">ROI ao longo do tempo</div></div><div style="position:relative;width:100%;height:200px"><canvas id="chartROI"></canvas></div></div>
       <div class="section-card"><div class="section-head"><div class="s-bar"></div><div class="s-title">ROAS ao longo do tempo</div></div><div style="position:relative;width:100%;height:200px"><canvas id="chartROAS"></canvas></div></div>
     </div>
-    <div class="section-card"><div class="section-head"><div class="s-bar" style="background:var(--green);box-shadow:0 0 8px var(--green)"></div><div class="s-title">Comparativo mensal</div></div><div style="position:relative;width:100%;height:220px"><canvas id="chartMensal"></canvas></div></div>
+    <div class="section-card"><div class="section-head"><div class="s-bar" style="background:var(--blue)"></div><div class="s-title">Comparativo mensal</div></div><div style="position:relative;width:100%;height:220px"><canvas id="chartMensal"></canvas></div></div>
     <div class="metrics-grid-3">
       <div class="metric-card"><div class="metric-label">Melhor ROI registrado</div><div class="metric-value c-green" id="perfBestROI">—</div><div class="metric-sub" id="perfBestROISub">—</div></div>
       <div class="metric-card"><div class="metric-label">Melhor ROAS registrado</div><div class="metric-value c-blue" id="perfBestROAS">—</div><div class="metric-sub" id="perfBestROASSub">—</div></div>
@@ -544,7 +606,7 @@ tbody tr:nth-child(even) td{background:rgba(255,255,255,.015)}
   <div class="page" id="page-conta">
     <div class="page-header"><div><h1>Minha conta</h1><p>Credenciais e configurações de conexão</p></div></div>
     <div class="section-card">
-      <div class="section-head"><div class="s-bar" style="background:#1877f2;box-shadow:0 0 8px #1877f2"></div><div class="s-title">Meta Ads — Token de acesso</div></div>
+      <div class="section-head"><div class="s-bar" style="background:var(--blue)"></div><div class="s-title">Meta Ads — Token de acesso</div></div>
       <div id="tokenAlert" style="margin-bottom:1rem"></div>
       <div class="settings-grid">
         <div class="settings-field"><label>Access Token</label><input type="password" id="cfgToken" placeholder="EAAxxxxxx..."></div>
@@ -556,7 +618,7 @@ tbody tr:nth-child(even) td{background:rgba(255,255,255,.015)}
       </div>
     </div>
     <div class="section-card">
-      <div class="section-head"><div class="s-bar" style="background:var(--green);box-shadow:0 0 8px var(--green)"></div><div class="s-title">Google Sheets — Configuração</div></div>
+      <div class="section-head"><div class="s-bar" style="background:var(--blue)"></div><div class="s-title">Google Sheets — Configuração</div></div>
       <div class="settings-grid">
         <div class="settings-field"><label>Coluna da Data (letra)</label><input type="text" id="cfgColData" value="A" maxlength="2"></div>
         <div class="settings-field"><label>Coluna do Lucro (letra)</label><input type="text" id="cfgColLucro" value="J" maxlength="2"></div>
@@ -605,7 +667,7 @@ tbody tr:nth-child(even) td{background:rgba(255,255,255,.015)}
     </div>
     <div class="section-card">
       <div class="section-head">
-        <div class="s-bar" style="background:var(--red);box-shadow:0 0 8px var(--red)"></div>
+        <div class="s-bar" style="background:var(--blue)"></div>
         <div class="s-title">🔍 Celulares em "Achar"</div>
         <span style="margin-left:auto;font-size:11px;color:var(--text3)" id="estAcharCount">—</span>
       </div>
@@ -659,7 +721,8 @@ function toast(msg,type=''){
   clearTimeout(toastTimer);
   const t=document.getElementById('toast');
   const bar=document.getElementById('toastBar');
-  document.getElementById('toastMsg').textContent=msg;
+  const icons={ok:'<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',err:'<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',info:'<svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'};
+  document.getElementById('toastMsg').innerHTML=(icons[type]||icons.info)+msg;
   t.className='toast show'+(type?' '+type:'');
   bar.style.transition='none';bar.style.width='100%';
   setTimeout(()=>{bar.style.transition='width 3s linear';bar.style.width='0%';},50);
@@ -920,14 +983,18 @@ function renderProjecao(fd){
   const mediaDiaria=lucroMes/diasComDado;
   const projecao=lucroMes+(mediaDiaria*diasRestantes);
   document.getElementById('projVal').textContent=fmtBRL(projecao);
-  document.getElementById('projSub').textContent=`baseado em ${fmtBRL(mediaDiaria)}/dia`;
-  document.getElementById('projDiasRestantes').textContent=`${diasRestantes} dias restantes`;
-  document.getElementById('projMedia').textContent=`Acumulado: ${fmtBRL(lucroMes)}`;
+  const projSubEl=document.getElementById('projSub');if(projSubEl)projSubEl.textContent=`baseado em ${fmtBRL(mediaDiaria)}/dia`;
+  const projDiasEl=document.getElementById('projDiasRestantes');if(projDiasEl)projDiasEl.textContent=`${diasRestantes} dias restantes`;
+  const projMediaEl=document.getElementById('projMedia');if(projMediaEl)projMediaEl.textContent=`Acumulado: ${fmtBRL(lucroMes)}`;
   // Color based on best goal
   const METAS=[160000,200000,260000,350000];
   const proxima=METAS.find(m=>projecao<m);
   const el=document.getElementById('projVal');
   el.style.color=!proxima?'var(--yellow)':projecao>=METAS[0]?'var(--green)':'var(--purple)';
+  // Pulse when near a goal (within 10%)
+  const projCard=document.getElementById('projCard');
+  if(proxima&&(proxima-projecao)/proxima<0.1){projCard.classList.add('near-goal');}
+  else{projCard.classList.remove('near-goal');}
 }
 
 // ── Vendedores ──
@@ -953,6 +1020,51 @@ function renderVendors(fd){
     </div>
   `).join('');
   document.getElementById('vendorList').innerHTML=html;
+}
+
+// ── Meta banner ──
+function renderMetaBanner() {
+  const METAS = [160000, 200000, 260000, 350000];
+  const LABELS = ['Meta 1', 'Meta 2', 'Meta 3', 'Super Meta'];
+  const now = new Date();
+  const ym = now.toISOString().slice(0, 7);
+  const diasNoMes = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const diaAtual = now.getDate();
+  const diasRestantes = diasNoMes - diaAtual;
+
+  const lucroMes = Object.entries(days)
+    .filter(([iso]) => iso.startsWith(ym))
+    .reduce((a, [, d]) => a + d.lucro, 0);
+
+  // Qual meta estamos mirando
+  const proxima = METAS.find(m => lucroMes < m) || METAS[METAS.length - 1];
+  const idx = METAS.indexOf(proxima);
+  const label = LABELS[idx];
+  const falta = Math.max(proxima - lucroMes, 0);
+  const necessarioPorDia = diasRestantes > 0 ? falta / diasRestantes : 0;
+  const pct = Math.min((lucroMes / proxima) * 100, 100);
+
+  // Atualiza elementos
+  document.getElementById('metaBannerDias').textContent = diasRestantes + 'd';
+  document.getElementById('metaBannerNecessario').textContent = fmtBRL(necessarioPorDia);
+  document.getElementById('metaBannerAcumulado').textContent = fmtBRL(lucroMes);
+  document.getElementById('metaBannerProgress').style.width = pct.toFixed(1) + '%';
+
+  const msg = document.getElementById('metaBannerMsg');
+  if (lucroMes <= 0) {
+    msg.innerHTML = 'Aguardando dados do mês...';
+  } else if (lucroMes >= METAS[METAS.length - 1]) {
+    msg.innerHTML = '🏆 Todas as metas atingidas! Incrível!';
+  } else {
+    msg.innerHTML = `Faltam <span class="meta-banner-highlight">${fmtBRL(falta)}</span> para a <strong>${label}</strong>`;
+  }
+
+  // Muda cor do progress conforme proximidade
+  const fill = document.getElementById('metaBannerProgress');
+  if (pct >= 100) fill.style.background = 'linear-gradient(90deg,#22c55e,#f59e0b)';
+  else if (pct >= 75) fill.style.background = 'linear-gradient(90deg,#22c55e,#3b82f6)';
+  else if (pct >= 50) fill.style.background = 'linear-gradient(90deg,#3b82f6,#a855f7)';
+  else fill.style.background = 'linear-gradient(90deg,#3b82f6,#a855f7)';
 }
 
 // ── Goal ──
@@ -1003,31 +1115,20 @@ function renderResumo(){
   const media=n?tL/n:0;
   const margem=(tL+tG)>0?(tL/(tL+tG))*100:null;
 
-  // Today vs Yesterday
-  const today=days[todayISO()]||{gasto:0,lucro:0};
-  const yesterday=days[yesterdayISO()]||{gasto:0,lucro:0};
-  document.getElementById('todayDate').textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'});
-  document.getElementById('todayGasto').textContent=fmtBRL(today.gasto);
-  const todayLucroEl=document.getElementById('todayLucro');
-  todayLucroEl.textContent=fmtBRL(today.lucro);
-  todayLucroEl.className='today-stat-value '+(today.lucro>0?'c-green':today.lucro<0?'c-red':'');
-  const todayROI=today.gasto>0?((today.lucro/today.gasto)*100).toFixed(1)+'%':'N/A';
-  document.getElementById('todayROI').textContent=todayROI;
-  // Trend vs yesterday
-  const trendEl=document.getElementById('todayTrend');
-  if(yesterday.lucro!==0){
-    const diff=((today.lucro-yesterday.lucro)/Math.abs(yesterday.lucro)*100).toFixed(1);
-    const up=parseFloat(diff)>=0;
-    trendEl.className='trend '+(up?'up':'down');
-    trendEl.textContent=(up?'↑ +':'↓ ')+diff+'%';
-  }else{trendEl.className='trend neutral';trendEl.textContent='—';}
+
 
   // Metrics
-  document.getElementById('mGasto').textContent=fmtBRL(tG);
+  // Animated counters
+  animateCounter('mGasto', tG, 'R$ ');
   document.getElementById('mDias').textContent=n+(n===1?' dia':' dias')+' registrados';
-  const mL=document.getElementById('mLucro');mL.textContent=fmtBRL(tL);mL.className='metric-value '+(tL>0?'c-green':tL<0?'c-red':'');
+  const mL=document.getElementById('mLucro');mL.className='metric-value '+(tL>0?'c-green':tL<0?'c-red':'');
+  animateCounter('mLucro', tL, 'R$ ');
   const mR=document.getElementById('mROI');mR.textContent=roi!==null?(roi>=0?'+':'')+roi.toFixed(1)+'%':'N/A';mR.className='metric-value '+(roi>0?'c-green':roi<0?'c-red':'');
   const mROAS=document.getElementById('mROAS');mROAS.textContent=roas!==null?roas.toFixed(2)+'x':'N/A';mROAS.className='metric-value '+(roas>=2?'c-green':roas>=1?'':'c-red');
+  // Sparklines
+  const sorted7=filteredFor(7);
+  renderSparkline('sparkGasto', sorted7.map(([,d])=>d.gasto), '#3b82f6');
+  renderSparkline('sparkLucro', sorted7.map(([,d])=>d.lucro), tL>=0?'#22c55e':'#ef4444');
   if(best){document.getElementById('mMelhor').textContent=fmtBRL(best[1].lucro);document.getElementById('mMelhorSub').textContent=fmtISO(best[0]);}
   if(worst){document.getElementById('mPior').textContent=fmtBRL(worst[1].lucro);document.getElementById('mPiorSub').textContent=fmtISO(worst[0]);}
   const mM=document.getElementById('mMedia');mM.textContent=fmtBRL(media);mM.className='metric-value '+(media>0?'c-green':media<0?'c-red':'');
@@ -1035,6 +1136,7 @@ function renderResumo(){
   document.getElementById('tableCount').textContent=Object.keys(days).length+' dias';
 
   renderGoals();
+  renderMetaBanner();
   renderProjecao(fd);
   renderVendors(fd);
 
@@ -1096,24 +1198,35 @@ function renderMainChart(fd){
 
 function renderTable(){
   const showTags=document.getElementById('togTags')?.checked!==false;
-  const wrap=document.getElementById('tableWrap');
   const sorted=Object.entries(days).sort((a,b)=>b[0].localeCompare(a[0]));
-  if(!sorted.length){wrap.innerHTML='<div class="empty">Nenhum dado carregado.</div>';return;}
-  const rows=sorted.map(([iso,d])=>{
+  // Build prev day map for trend
+  const isoList=Object.keys(days).sort();
+  if(!sorted.length){allTableRows=[];renderTablePaged();return;}
+  allTableRows=sorted.map(([iso,d],i)=>{
     const roi=d.gasto>0?(d.lucro/d.gasto)*100:null;
     const roas=d.gasto>0?(d.lucro+d.gasto)/d.gasto:null;
     const pos=d.lucro>=0;const isToday=iso===todayISO();
     const srcL=showTags&&d.srcL==='sheets'?'<span class="src-tag src-sheets">Sheets</span>':'';
     const srcG=showTags&&d.srcG==='meta'?'<span class="src-tag src-meta">Meta</span>':'';
+    // trend vs prev day
+    const prevIdx=isoList.indexOf(iso)-1;
+    const prevDay=prevIdx>=0?days[isoList[prevIdx]]:null;
+    let trendHtml='';
+    if(prevDay&&prevDay.lucro!==0){
+      const diff=((d.lucro-prevDay.lucro)/Math.abs(prevDay.lucro)*100).toFixed(1);
+      const up=parseFloat(diff)>=0;
+      trendHtml=`<span class="trend-cell ${up?'trend-up':'trend-down'}">${up?'↑':'↓'}${Math.abs(diff)}%</span>`;
+    }
     return`<tr>
       <td style="color:var(--text2);font-size:12px;font-weight:500">${fmtISO(iso)}${isToday?'<span class="today-tag">hoje</span>':''}</td>
       <td style="color:var(--blue);font-weight:700">${fmtBRL(d.gasto)}${srcG}</td>
-      <td style="color:${pos?'var(--green)':'var(--red)'};font-weight:700">${pos?'':'-'}${fmtBRL(d.lucro)}${srcL}</td>
+      <td style="font-weight:700"><span style="color:${pos?'var(--green)':'var(--red)'}">${pos?'':'-'}${fmtBRL(d.lucro)}</span>${trendHtml}${srcL}</td>
       <td>${roi!==null?`<span class="pill ${roi>0?'pill-g':roi<0?'pill-r':'pill-b'}">${roi>=0?'+':''}${roi.toFixed(1)}%</span>`:'—'}</td>
       <td>${roas!==null?`<span class="pill pill-b">${roas.toFixed(2)}x</span>`:'—'}</td>
     </tr>`;
-  }).join('');
-  wrap.innerHTML=`<table><thead><tr><th>Data</th><th>Gasto ADS</th><th>Lucro</th><th>ROI</th><th>ROAS</th></tr></thead><tbody>${rows}</tbody></table>`;
+  });
+  currentPage=1;
+  renderTablePaged();
 }
 
 // ── Meta page ──
@@ -1310,6 +1423,88 @@ function renderEstoque(){
     </tr>`;
   }).join('');
   document.getElementById('estAcharList').innerHTML=`<div class="table-wrap"><table><thead><tr><th>Modelo</th><th>Cor</th><th>GB</th><th>IMEI</th><th>Custo</th><th>Entrada</th><th>Situação</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+// ── Sparkline ──
+function renderSparkline(elId, data, color) {
+  const el = document.getElementById(elId);
+  if (!el || !data.length) return;
+  const max = Math.max(...data, 1);
+  const min = Math.min(...data, 0);
+  const range = max - min || 1;
+  const w = 100, h = 32;
+  const pts = data.map((v, i) => {
+    const x = (i / (data.length - 1)) * w;
+    const y = h - ((v - min) / range) * h;
+    return `${x},${y}`;
+  }).join(' ');
+  el.innerHTML = `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+    <defs><linearGradient id="sg${elId}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${color}" stop-opacity=".3"/>
+      <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+    </linearGradient></defs>
+    <polygon points="${pts} ${w},${h} 0,${h}" fill="url(#sg${elId})"/>
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`;
+}
+
+// ── Animated counter ──
+function animateCounter(elId, target, prefix='', suffix='') {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  el.classList.add('animate');
+  const duration = 600;
+  const startTime = performance.now();
+  const start = 0;
+  function update(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 4);
+    const current = start + (target - start) * eased;
+    el.textContent = prefix + Math.abs(current).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + suffix;
+    if (progress < 1) requestAnimationFrame(update);
+    else el.classList.remove('animate');
+  }
+  requestAnimationFrame(update);
+}
+
+// ── Pagination ──
+let currentPage = 1;
+const rowsPerPage = 15;
+let allTableRows = [];
+
+function renderTablePaged() {
+  const wrap = document.getElementById('tableWrap');
+  const pag = document.getElementById('tablePagination');
+  const info = document.getElementById('paginationInfo');
+  const btns = document.getElementById('paginationBtns');
+  if (!allTableRows.length) { wrap.innerHTML = '<div class="empty">Nenhum dado carregado.</div>'; pag.style.display='none'; return; }
+  const total = allTableRows.length;
+  const totalPages = Math.ceil(total / rowsPerPage);
+  const start = (currentPage - 1) * rowsPerPage;
+  const end = Math.min(start + rowsPerPage, total);
+  const pageRows = allTableRows.slice(start, end);
+  wrap.innerHTML = `<table class="table-sticky"><thead><tr><th>Data</th><th>Gasto ADS</th><th>Lucro</th><th>ROI</th><th>ROAS</th></tr></thead><tbody>${pageRows.join('')}</tbody></table>`;
+  pag.style.display = 'flex';
+  info.textContent = `${start + 1}–${end} de ${total} registros`;
+  // Render page buttons
+  let html = `<button class="pg-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
+  let pStart = Math.max(1, currentPage - 2);
+  let pEnd = Math.min(totalPages, pStart + 4);
+  if (pEnd - pStart < 4) pStart = Math.max(1, pEnd - 4);
+  for (let p = pStart; p <= pEnd; p++) {
+    html += `<button class="pg-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
+  }
+  html += `<button class="pg-btn" onclick="goPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>›</button>`;
+  btns.innerHTML = html;
+}
+
+function goPage(p) {
+  const total = allTableRows.length;
+  const totalPages = Math.ceil(total / rowsPerPage);
+  if (p < 1 || p > totalPages) return;
+  currentPage = p;
+  renderTablePaged();
 }
 
 // ── Init ──
