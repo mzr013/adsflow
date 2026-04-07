@@ -408,6 +408,7 @@ tbody tr:nth-child(even) td{background:rgba(255,255,255,.015)}
     <div class="nav-section">Conta</div>
     <div class="nav-item" onclick="goTo('conta',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>Minha conta</div>
     <div class="nav-item" onclick="goTo('campanhas',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Campanhas</div>
+    <div class="nav-item" onclick="goTo('assistencia',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>Assistência</div>
     <div class="nav-item" onclick="goTo('estoque',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M6 8h.01M10 8h8M6 12h.01M10 12h5"/></svg>Estoque</div>
     <div class="nav-item" onclick="goTo('config',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>Configurações</div>
   </nav>
@@ -701,6 +702,68 @@ tbody tr:nth-child(even) td{background:rgba(255,255,255,.015)}
     </div>
   </div>
 
+  <!-- ASSISTÊNCIA -->
+  <div class="page" id="page-assistencia">
+    <div class="page-header">
+      <div><h1>Assistência</h1><p>Ordens de serviço</p></div>
+      <div class="page-header-right">
+        <button class="btn-primary" onclick="syncAssistencia()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>Atualizar
+        </button>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="metrics-grid" id="assistKpis">
+      <div class="metric-card"><div class="metric-icon ic-blue"><svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></div><div class="metric-label">Em aberto</div><div class="metric-value c-blue" id="assistAberto">—</div><div class="metric-sub">aguardando ou em conserto</div></div>
+      <div class="metric-card"><div class="metric-icon ic-red"><svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><div class="metric-label">Prazo vencido</div><div class="metric-value c-red" id="assistVencido">—</div><div class="metric-sub">precisam de atenção urgente</div></div>
+      <div class="metric-card"><div class="metric-icon ic-green"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div class="metric-label">Prontos p/ entrega</div><div class="metric-value c-green" id="assistPronto">—</div><div class="metric-sub">aguardando retirada</div></div>
+      <div class="metric-card"><div class="metric-icon ic-yellow"><svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="metric-label">Tempo médio</div><div class="metric-value c-yellow" id="assistTempo">—</div><div class="metric-sub">dias até conclusão</div></div>
+    </div>
+
+    <!-- Alertas de prazo -->
+    <div class="section-card" id="assistAlertaCard" style="display:none">
+      <div class="section-head"><div class="s-bar"></div><div class="s-title">Prazos vencidos / urgentes</div></div>
+      <div id="assistAlertaList"></div>
+    </div>
+
+    <!-- Filtros e tabela -->
+    <div class="section-card" style="padding:0;overflow:hidden">
+      <div class="table-header" style="flex-direction:column;align-items:flex-start;gap:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
+          <span class="table-title">Ordens de serviço</span>
+          <span class="table-count" id="assistCount">—</span>
+        </div>
+        <div class="assist-filters" id="assistFilters">
+          <button class="assist-filter-btn on" onclick="filterAssist('todos',this)">Todos</button>
+          <button class="assist-filter-btn" onclick="filterAssist('Em análise',this)">Em análise</button>
+          <button class="assist-filter-btn" onclick="filterAssist('Aguardando peça',this)">Aguardando peça</button>
+          <button class="assist-filter-btn" onclick="filterAssist('Em conserto',this)">Em conserto</button>
+          <button class="assist-filter-btn" onclick="filterAssist('Pronto',this)">Pronto</button>
+          <button class="assist-filter-btn" onclick="filterAssist('Entregue',this)">Entregue</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Modelo</th>
+              <th>Cor</th>
+              <th>IMEI</th>
+              <th>O que fazer</th>
+              <th>Situação</th>
+              <th>Onde está</th>
+              <th>Chegou</th>
+              <th>Prazo</th>
+              <th>Dias</th>
+            </tr>
+          </thead>
+          <tbody id="assistTableBody"><tr><td colspan="9" class="empty">Carregando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <!-- ESTOQUE -->
   <div class="page" id="page-estoque">
     <div class="page-header">
@@ -813,6 +876,7 @@ function goTo(page,el){
   if(page==='conta')renderContaPage();
   if(page==='config')loadPrefs();
   if(page==='estoque')syncEstoque();
+  if(page==='assistencia')syncAssistencia();
   if(page==='campanhas')renderCampanhas();
 }
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show');}
@@ -1528,6 +1592,170 @@ function buildCampanhas(camps) {
     </tr>`;
   }).join('');
   document.getElementById('campTableBody').innerHTML = rows;
+}
+
+// ── Assistência ──
+let assistData = [];
+let assistFilter = 'todos';
+
+async function syncAssistencia() {
+  try {
+    const r = await fetch('/api/assistencia');
+    const j = await r.json();
+    if (j.error) throw new Error(j.error);
+    const rows = parseCSV(j.csv);
+    if (rows.length < 2) { toast('Assistência sem dados', 'err'); return; }
+    assistData = rows.slice(1).filter(r => r[0] && r[0].trim() && r[0].trim() !== 'MODELO');
+    renderAssistencia();
+    toast('✓ Assistência atualizada', 'ok');
+  } catch(e) { toast('Erro ao carregar assistência: ' + e.message, 'err'); }
+}
+
+function getStatusClass(s) {
+  const sl = (s||'').toLowerCase();
+  if (sl.includes('análise') || sl.includes('analise')) return 'status-analise';
+  if (sl.includes('aguardando')) return 'status-aguardando';
+  if (sl.includes('conserto')) return 'status-conserto';
+  if (sl.includes('pronto')) return 'status-pronto';
+  if (sl.includes('entregue')) return 'status-entregue';
+  return 'status-analise';
+}
+
+function parsePrazo(str) {
+  if (!str || str.trim() === '' || str.trim() === '-') return null;
+  return parseDateBR(str.trim());
+}
+
+function diasRestantesPrazo(isoDate) {
+  if (!isoDate) return null;
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const prazo = new Date(isoDate + 'T00:00:00');
+  return Math.ceil((prazo - hoje) / (1000*60*60*24));
+}
+
+function renderAssistencia() {
+  const data = assistData;
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+
+  // KPIs
+  const aberto = data.filter(r => {
+    const s = (r[4]||'').toLowerCase();
+    return !s.includes('entregue');
+  }).length;
+  const vencido = data.filter(r => {
+    const s = (r[4]||'').toLowerCase();
+    if (s.includes('entregue')) return false;
+    const prazo = parsePrazo(r[11]);
+    if (!prazo) return false;
+    return diasRestantesPrazo(prazo) < 0;
+  }).length;
+  const pronto = data.filter(r => (r[4]||'').toLowerCase().includes('pronto')).length;
+
+  // Tempo médio (chegou até saída ou hoje)
+  let totalDias = 0, countDias = 0;
+  data.forEach(r => {
+    const chegou = parseDateBR(r[9]);
+    if (!chegou) return;
+    const saida = parseDateBR(r[10]);
+    const fim = saida ? new Date(saida+'T00:00:00') : hoje;
+    const dias = Math.ceil((fim - new Date(chegou+'T00:00:00')) / (1000*60*60*24));
+    if (dias >= 0) { totalDias += dias; countDias++; }
+  });
+
+  document.getElementById('assistAberto').textContent = aberto;
+  document.getElementById('assistVencido').textContent = vencido;
+  document.getElementById('assistPronto').textContent = pronto;
+  document.getElementById('assistTempo').textContent = countDias ? (totalDias/countDias).toFixed(1) + 'd' : '—';
+
+  // Alertas de prazo vencido / urgente
+  const urgentes = data.filter(r => {
+    const s = (r[4]||'').toLowerCase();
+    if (s.includes('entregue')) return false;
+    const prazo = parsePrazo(r[11]);
+    if (!prazo) return false;
+    const dias = diasRestantesPrazo(prazo);
+    return dias <= 1;
+  }).sort((a,b) => {
+    const pa = parsePrazo(a[11]), pb = parsePrazo(b[11]);
+    return (pa||'').localeCompare(pb||'');
+  });
+
+  const alertCard = document.getElementById('assistAlertaCard');
+  if (urgentes.length) {
+    alertCard.style.display = '';
+    document.getElementById('assistAlertaList').innerHTML = urgentes.map(r => {
+      const prazo = parsePrazo(r[11]);
+      const dias = diasRestantesPrazo(prazo);
+      const tipo = dias < 0 ? 'danger' : 'warn';
+      const msg = dias < 0 ? `Prazo vencido há ${Math.abs(dias)} dia(s)` : dias === 0 ? 'Prazo vence HOJE' : 'Prazo vence amanhã';
+      return `<div class="alert-item ${tipo}" style="margin-bottom:6px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span><strong>${r[0]} ${r[1]||''}</strong> — ${r[5]||'sem descrição'} — <em>${msg}</em>${r[7]?' · '+r[7]:''}</span>
+      </div>`;
+    }).join('');
+  } else {
+    alertCard.style.display = 'none';
+  }
+
+  renderAssistTable();
+}
+
+function filterAssist(status, btn) {
+  assistFilter = status;
+  document.querySelectorAll('.assist-filter-btn').forEach(b => b.classList.remove('on'));
+  if (btn) btn.classList.add('on');
+  renderAssistTable();
+}
+
+function renderAssistTable() {
+  const filtered = assistFilter === 'todos'
+    ? assistData
+    : assistData.filter(r => (r[4]||'').toLowerCase().includes(assistFilter.toLowerCase()));
+
+  document.getElementById('assistCount').textContent = filtered.length + ' registros';
+
+  if (!filtered.length) {
+    document.getElementById('assistTableBody').innerHTML = '<tr><td colspan="9" class="empty">Nenhum registro encontrado.</td></tr>';
+    return;
+  }
+
+  const rows = filtered.map(r => {
+    const situacao = r[4] || '—';
+    const statusClass = getStatusClass(situacao);
+    const prazoIso = parsePrazo(r[11]);
+    const diasP = prazoIso ? diasRestantesPrazo(prazoIso) : null;
+    let prazoHtml = '—';
+    let diasHtml = '—';
+    if (prazoIso) {
+      prazoHtml = fmtISO(prazoIso);
+      if (diasP < 0) {
+        prazoHtml = `<span class="prazo-venc">${prazoHtml}</span>`;
+        diasHtml = `<span class="prazo-venc">${Math.abs(diasP)}d atraso</span>`;
+      } else if (diasP === 0) {
+        prazoHtml = `<span class="prazo-venc">${prazoHtml}</span>`;
+        diasHtml = `<span class="prazo-venc">Hoje</span>`;
+      } else if (diasP <= 2) {
+        prazoHtml = `<span class="prazo-warn">${prazoHtml}</span>`;
+        diasHtml = `<span class="prazo-warn">${diasP}d</span>`;
+      } else {
+        diasHtml = `<span class="prazo-ok">${diasP}d</span>`;
+      }
+    }
+    const chegou = parseDateBR(r[9]);
+    return `<tr>
+      <td style="font-weight:600">${r[0]||'—'}</td>
+      <td style="color:var(--text2)">${r[1]||'—'}</td>
+      <td style="color:var(--text3);font-size:11px">${r[2]||'—'}</td>
+      <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px" title="${r[5]||''}">${r[5]||'—'}</td>
+      <td><span class="status-pill ${statusClass}">${situacao}</span></td>
+      <td style="color:var(--text2);font-size:12px">${r[7]||'—'}</td>
+      <td style="color:var(--text3);font-size:12px">${chegou?fmtISO(chegou):'—'}</td>
+      <td style="font-size:12px">${prazoHtml}</td>
+      <td style="font-size:12px">${diasHtml}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('assistTableBody').innerHTML = rows;
 }
 
 // ── Estoque ──
