@@ -1115,8 +1115,10 @@ function renderProjecao(fd){
   el.style.color=!proxima?'var(--yellow)':projecao>=METAS[0]?'var(--green)':'var(--purple)';
   // Pulse when near a goal (within 10%)
   const projCard=document.getElementById('projCard');
-  if(proxima&&(proxima-projecao)/proxima<0.1){projCard.classList.add('near-goal');}
-  else{projCard.classList.remove('near-goal');}
+  if(projCard){
+    if(proxima&&(proxima-projecao)/proxima<0.1){projCard.classList.add('near-goal');}
+    else{projCard.classList.remove('near-goal');}
+  }
 }
 
 // ── Vendedores ──
@@ -1284,7 +1286,9 @@ function renderResumo(){
     const alertDiv=document.createElement('div');alertDiv.id='roiAlert';
     alertDiv.className='roi-alert';
     alertDiv.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>⚠️ ROI abaixo de 20% — revise seus anúncios!';
-    document.getElementById('projCard').before(alertDiv);
+    const projCardEl=document.getElementById('projCard');
+    if(projCardEl){projCardEl.before(alertDiv);}
+    else{const goalCard=document.getElementById('goalCard');if(goalCard)goalCard.before(alertDiv);}
   }
 
   // Auto switch chart type: line for >30 days
